@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Family Remote</string>
+
+    <!-- Main tabs -->
+    <string name="tab_parent">Parent</string>
+    <string name="tab_child">Child</string>
+
+    <!-- Parent home -->
+    <string name="parent_home_title">Parent mode</string>
+    <string name="parent_home_show_screen_placeholder">"Show Screen" will be available once screen sharing is implemented.</string>
+    <string name="parent_home_pair_button">Pair a new child device</string>
+
+    <!-- Child home / pairing list -->
+    <string name="pairing_list_title">Paired parent devices</string>
+    <string name="pairing_list_empty">No parent devices paired yet. Tap + to add one.</string>
+    <string name="pairing_list_add_fab_desc">Add a parent device</string>
+    <string name="pairing_entry_rename_desc">Rename</string>
+    <string name="pairing_entry_delete_desc">Delete</string>
+    <string name="pairing_rename_dialog_title">Rename device</string>
+    <string name="pairing_delete_dialog_title">Delete this pairing?</string>
+    <string name="pairing_delete_dialog_message">This removes the pairing entry from this device only. The parent device is not notified.</string>
+    <string name="action_ok">OK</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_continue">Continue</string>
+    <string name="action_retry">Retry</string>
+    <string name="action_done">Done</string>
+
+    <!-- Accessibility onboarding -->
+    <string name="accessibility_onboarding_title">Enable Accessibility Service</string>
+    <string name="accessibility_onboarding_explanation">To let the child device tap, swipe, and type on this device during a remote support session, this device needs the Accessibility Service permission enabled. This is a one-time setting.</string>
+    <string name="accessibility_onboarding_open_settings">Open Accessibility Settings</string>
+    <string name="accessibility_onboarding_status_granted">Status: enabled</string>
+    <string name="accessibility_onboarding_status_not_granted">Status: not enabled yet</string>
+
+    <!-- MyOS setup checklist -->
+    <string name="myos_checklist_title">Background run settings</string>
+    <string name="myos_checklist_intro_specific">This device may aggressively close this app when it is in the background. Complete these one-time steps so remote sharing keeps working:</string>
+    <string name="myos_checklist_intro_generic">If this phone aggressively closes background apps, these settings may help keep sharing sessions stable:</string>
+    <string name="myos_checklist_step_battery">Allow unrestricted battery usage for this app (Settings → Apps → Family Remote → Battery → Unrestricted).</string>
+    <string name="myos_checklist_step_battery_button">Open app battery settings</string>
+    <string name="myos_checklist_step_autostart">Settings → App Management → Auto Start Management → enable Family Remote. (No direct link available on this device — please navigate there manually.)</string>
+    <string name="myos_checklist_checkbox_generic">I understand</string>
+    <string name="myos_checklist_checkbox_battery">I completed the battery setting</string>
+    <string name="myos_checklist_checkbox_autostart">I completed the auto-start setting</string>
+
+    <!-- Parent pairing (QR display) -->
+    <string name="parent_pairing_title">Pair a new child device</string>
+    <string name="parent_pairing_instructions">On the child\'s device, open the app, switch to the Child tab, and tap "Add a parent device" to scan this code.</string>
+    <string name="parent_pairing_waiting">Waiting for the child device to scan this code…</string>
+    <string name="parent_pairing_success">Paired successfully!</string>
+    <string name="parent_pairing_tailscale_missing">Tailscale not detected on this device. Please install the Tailscale app and sign in to the family tailnet, then retry.</string>
+    <string name="parent_pairing_open_tailscale">Open Tailscale</string>
+    <string name="parent_pairing_error_timeout">Pairing timed out. Please try again.</string>
+    <string name="parent_pairing_error_generic">Pairing failed: %1$s</string>
+
+    <!-- Child pairing scan -->
+    <string name="child_pairing_scan_title">Add a parent device</string>
+    <string name="child_pairing_camera_permission_rationale">Camera access is needed to scan the QR code shown on the parent\'s device.</string>
+    <string name="child_pairing_grant_camera">Grant camera permission</string>
+    <string name="child_pairing_connecting">Connecting to the parent device…</string>
+    <string name="child_pairing_invalid_qr">That QR code could not be read. Please try scanning again.</string>
+    <string name="child_pairing_tailscale_missing">Tailscale not detected on this device. Please install the Tailscale app and sign in to the family tailnet, then retry.</string>
+    <string name="child_pairing_error_generic">Could not pair with that device: %1$s</string>
+    <string name="child_pairing_scan_again">Scan again</string>
+
+    <!-- Label prompt -->
+    <string name="pairing_label_prompt_title">Name this device</string>
+    <string name="pairing_label_prompt_hint">e.g. Father, Mother</string>
+    <string name="pairing_label_prompt_default">Parent</string>
+    <string name="pairing_label_prompt_save">Save</string>
+</resources>
