@@ -17,6 +17,7 @@
 11. Letterbox/Pillarbox Taps: Discard Chosen Over Clamp-to-Nearest-Coordinate
 12. Parent-Initiated Connection Establishment Chosen Over Always-On Child-Polled Listener
 13. No Dedicated "Resume Sharing" UI After a Full Process-Kill
+14. UI Language Support: ja/en/zh via System-Locale Auto-Detect, English Fallback
 
 ## 1. MediaProjection Confirmation Dialog Cannot Be Bypassed
 
@@ -73,3 +74,14 @@ For establishing the connection at the start of the §17 waiting-for-parent peri
 ## 13. No Dedicated "Resume Sharing" UI After a Full Process-Kill
 
 When MyOS performs a full process-kill (as opposed to a service-level stop that the process survives), Android invalidates the MediaProjection grant along with the killed process — no restart mechanism, however fast, can resume screen capture without the parent physically re-tapping the OS's own confirmation dialog (`docs/DECISIONS.md` #1). Two options were considered for this specific moment: (A/C) no dedicated recovery UI — the parent simply redoes the existing 2-tap widget flow (detailed-spec.md §4) once they notice sharing stopped (typically prompted by the child, already on the call); or (B) a dedicated "tap to resume sharing" notification, triggered by the §6 WorkManager/AlarmManager watchdog detecting the kill, to shorten the parent's path back to the confirmation dialog. The user chose (A/C): no dedicated UI is added. This keeps the total surface of parent-facing, self-service affordances unchanged, consistent with `docs/DECISIONS.md` #7 (the auto-dial-call idea was rejected on the same basis: the parent's tech proficiency is judged too low to reliably rely on for anything beyond the core minimal flow, so new recovery-specific UI aimed at the parent is treated as added risk rather than a clear win). detailed-spec.md §6's mitigation wording was corrected accordingly to scope the "brief interruption, no need to redo the tap flow" outcome to process-survives and transient-network cases only, rather than implying it also covers a full process-kill.
+
+## 14. UI Language Support: ja/en/zh via System-Locale Auto-Detect, English Fallback
+
+A review gap surfaced that UI language/locale was never specified anywhere in `spec.md`/`detailed-spec.md`, despite the target users being non-tech-savvy parents (spec.md §2) on Japanese-market devices (detailed-spec.md §1). detailed-spec.md §5/§11/§14/§17's "wording left to implementation" bullets had silently left language itself unspecified, and the already-merged Tier 0 (Pairing & Onboarding) feature shipped English-only `strings.xml` as a direct consequence (`docs/QA.md`, "UI Language / Locale Support").
+
+Three sub-decisions were made together:
+- **Languages: Japanese, English, and Chinese (ja/en/zh)**, covering both device markets/users in play (Japanese-market parent devices, per detailed-spec.md §1) and the child, for the whole app rather than only the onboarding flow.
+- **Selection mechanism: automatic system-locale detection, not a manual in-app picker.** This follows the same precedent already applied twice elsewhere in this document — spec.md §2's step-minimization priority was used to reject an auto-dial-call affordance (#7) and a dedicated resume-sharing UI (#13) as unnecessary additions beyond the core flow. A manual language picker is the same category of problem in reverse: it would add a one-time setup step (choosing a language) that system-locale auto-detection makes unnecessary, since Android's own resource-qualifier mechanism (`values-ja/`, `values-zh/`, default `values/`) already selects the correct language with zero app-side steps for either the parent or the child.
+- **Fallback: English**, for any system locale outside ja/en/zh (e.g. Korean). This was not treated as an independent design choice requiring justification — it is simply how Android's unqualified default resource set (`values/strings.xml`) already behaves for any unmatched locale, so authoring that default set in English (rather than, say, Japanese) is sufficient on its own; no additional fallback logic needs to be written or decided.
+
+See `docs/QA.md` for the full resolution record, `docs/spec.md` §6 for the confirmed-spec bullet, and `docs/detailed-spec.md` §18 for the implementation-level elaboration.
