@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Placeholder widget appearance; icon/label design intentionally not yet decided by the
+     user (see ShowScreenWidgetProvider doc comment). Generic launcher-style icon + localized
+     label text only; do not over-invest in custom art here. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widgetShowScreenButton"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:background="@drawable/widget_show_screen_background"
+    android:padding="8dp">
+
+    <ImageView
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:src="@mipmap/ic_launcher"
+        android:contentDescription="@string/widget_show_screen_label" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="@string/widget_show_screen_label"
+        android:textColor="@color/white"
+        android:textSize="12sp" />
+
+</LinearLayout>
