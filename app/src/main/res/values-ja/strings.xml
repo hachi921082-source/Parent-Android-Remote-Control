@@ -8,8 +8,16 @@
 
     <!-- Parent home -->
     <string name="parent_home_title">親モード</string>
-    <string name="parent_home_show_screen_placeholder">「画面を見せる」機能は、画面共有の実装後に使えるようになります。</string>
+    <string name="parent_home_show_screen_button">画面を見せる</string>
     <string name="parent_home_pair_button">新しい子デバイスとペアリングする</string>
+
+    <!-- Show Screen widget (placeholder icon/label; see ShowScreenWidgetProvider) -->
+    <string name="widget_show_screen_label">画面を見せる</string>
+
+    <!-- Screen share foreground service notification -->
+    <string name="screen_share_notification_channel_name">画面共有</string>
+    <string name="screen_share_notification_title">画面を共有しています</string>
+    <string name="screen_share_notification_text">この端末の画面が共有されています。タップしてアプリを開きます。</string>
 
     <!-- Child home / pairing list -->
     <string name="pairing_list_title">ペアリング済みの親デバイス</string>
