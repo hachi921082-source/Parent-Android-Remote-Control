@@ -37,3 +37,16 @@ designer-lite's leaning: (C). It resolves the wording inaccuracy without adding 
 Blocks: developer-lite cannot finalize the "service killed mid-session, process died" handling in `docs/plans/screen-sharing-core/PLAN.md` and `docs/plans/connection-status-and-resilience/PLAN.md` — specifically, what the app presents to the parent after such a kill, and whether any new notification/UI component needs to be built for it — until this is resolved. `detailed-spec.md` §6's wording is left as-is until the user decides, since editing it now (even just to narrow its scope) would itself bake in a provisional choice among A/B/C.
 
 **Resolution**: user chose (C) — no dedicated recovery UI; `detailed-spec.md` §6's wording has been corrected to scope the "brief interruption" promise to process-survives/transient-network cases only. See `docs/DECISIONS.md` #13. developer-lite may now finalize the two blocked PLAN.md sub-items using option (C)/(A)'s end-state (no new notification/UI component for this case).
+
+## UI Language / Locale Support (added 2026-09-03) — RESOLVED 2026-09-03
+
+Background: A gap was found during review — UI language/locale is never specified anywhere in `spec.md`/`detailed-spec.md`, despite the target users being non-tech-savvy parents (spec.md §2) on Japanese-market devices (AQUOS Wish4, ZTE Nubia S2, detailed-spec.md §1). detailed-spec.md §5, §11, §14, §17 each state that UI "wording" is "left to implementation/PLAN.md" — this silently included the language itself, not just phrasing/styling, and the already-implemented and merged Tier 0 (Pairing & Onboarding) feature ended up with 100%-English `strings.xml` as a direct consequence (flagged as a non-blocking observation in that feature's reviewer-lite pass, recorded in `docs/HANDOFF.md`).
+
+Question: which language(s) should the app's UI support, and how should the language be selected (manual in-app picker vs. automatic system-locale detection)?
+
+**Resolution**: user decided directly (this was raised to and discussed with the user outside the numbered-options flow used for other QA.md items above):
+- Supported languages: Japanese, English, and Chinese (ja/en/zh) — applies to all UI text across both parent-facing and child-facing screens, for the whole app (not scoped to onboarding only).
+- Selection mechanism: automatic, following the device's OS system locale (standard Android resource-qualifier mechanism — `values-ja/strings.xml`, `values-zh/strings.xml`, default `values/strings.xml`). No in-app manual language picker/switcher — consistent with spec.md §2's top design priority of minimizing parent-side steps: a manual picker would add a setup step, whereas system-locale auto-detection adds zero.
+- Fallback: for any system locale other than ja/en/zh (e.g. Korean), fall back to English — this is the Android-standard default-resource behavior (the unqualified `values/strings.xml`, authored in English, serves as the fallback for any unmatched locale), not a special case requiring extra logic.
+
+See `docs/DECISIONS.md` #14 for rationale. `docs/spec.md` §6 and `docs/detailed-spec.md` §18 have been updated accordingly; `docs/detailed-spec.md` §5, §11, §14, §17 now cross-reference §18 to clarify that their "wording left to implementation" bullets no longer imply English-only.
