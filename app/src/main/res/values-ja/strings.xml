@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ファミリーリモート</string>
+
+    <!-- Main tabs -->
+    <string name="tab_parent">親</string>
+    <string name="tab_child">子</string>
+
+    <!-- Parent home -->
+    <string name="parent_home_title">親モード</string>
+    <string name="parent_home_show_screen_placeholder">「画面を見せる」機能は、画面共有の実装後に使えるようになります。</string>
+    <string name="parent_home_pair_button">新しい子デバイスとペアリングする</string>
+
+    <!-- Child home / pairing list -->
+    <string name="pairing_list_title">ペアリング済みの親デバイス</string>
+    <string name="pairing_list_empty">まだペアリングされた親デバイスはありません。＋をタップして追加してください。</string>
+    <string name="pairing_list_add_fab_desc">親デバイスを追加</string>
+    <string name="pairing_entry_rename_desc">名前を変更</string>
+    <string name="pairing_entry_delete_desc">削除</string>
+    <string name="pairing_rename_dialog_title">デバイス名を変更</string>
+    <string name="pairing_delete_dialog_title">このペアリングを削除しますか？</string>
+    <string name="pairing_delete_dialog_message">このデバイスからペアリング情報が削除されます。親デバイスには通知されません。</string>
+    <string name="action_ok">OK</string>
+    <string name="action_cancel">キャンセル</string>
+    <string name="action_delete">削除</string>
+    <string name="action_continue">続ける</string>
+    <string name="action_retry">再試行</string>
+    <string name="action_done">完了</string>
+
+    <!-- Accessibility onboarding -->
+    <string name="accessibility_onboarding_title">ユーザー補助サービスを有効にする</string>
+    <string name="accessibility_onboarding_explanation">リモートサポート中に子デバイスからこの端末をタップ・スワイプ・文字入力できるようにするため、ユーザー補助サービスの許可が必要です。設定は最初の一回だけで大丈夫です。</string>
+    <string name="accessibility_onboarding_open_settings">ユーザー補助の設定を開く</string>
+    <string name="accessibility_onboarding_status_granted">状態：有効</string>
+    <string name="accessibility_onboarding_status_not_granted">状態：まだ有効になっていません</string>
+
+    <!-- MyOS setup checklist -->
+    <string name="myos_checklist_title">バックグラウンド動作の設定</string>
+    <string name="myos_checklist_intro_specific">この端末はバックグラウンドのアプリを強制的に終了させることがあります。リモート共有が正しく動き続けるよう、次の設定を一度だけ行ってください。</string>
+    <string name="myos_checklist_intro_generic">この端末がバックグラウンドのアプリを強制的に終了させる場合、次の設定を行うと共有が安定しやすくなります。</string>
+    <string name="myos_checklist_step_battery">このアプリのバッテリー使用を無制限に許可してください（設定 → アプリ → ファミリーリモート → バッテリー → 無制限）。</string>
+    <string name="myos_checklist_step_battery_button">アプリのバッテリー設定を開く</string>
+    <string name="myos_checklist_step_autostart">設定 → アプリ管理 → 自動起動管理 で「ファミリーリモート」を有効にしてください。（この端末では直接開くリンクがありません。手動で移動してください。）</string>
+    <string name="myos_checklist_checkbox_generic">理解しました</string>
+    <string name="myos_checklist_checkbox_battery">バッテリーの設定を完了しました</string>
+    <string name="myos_checklist_checkbox_autostart">自動起動の設定を完了しました</string>
+
+    <!-- Parent pairing (QR display) -->
+    <string name="parent_pairing_title">新しい子デバイスとペアリングする</string>
+    <string name="parent_pairing_instructions">お子さんの端末でアプリを開き、「子」タブに切り替えて「親デバイスを追加」をタップし、この画面のコードを読み取ってもらってください。</string>
+    <string name="parent_pairing_waiting">子デバイスがこのコードを読み取るのを待っています…</string>
+    <string name="parent_pairing_success">ペアリングが完了しました！</string>
+    <string name="parent_pairing_tailscale_missing">この端末でTailscaleが見つかりませんでした。Tailscaleアプリをインストールし、家族のtailnetにサインインしてから、もう一度お試しください。</string>
+    <string name="parent_pairing_open_tailscale">Tailscaleを開く</string>
+    <string name="parent_pairing_error_timeout">ペアリングがタイムアウトしました。もう一度お試しください。</string>
+    <string name="parent_pairing_error_generic">ペアリングに失敗しました：%1$s</string>
+
+    <!-- Child pairing scan -->
+    <string name="child_pairing_scan_title">親デバイスを追加</string>
+    <string name="child_pairing_camera_permission_rationale">親デバイスに表示されているQRコードを読み取るには、カメラへのアクセスが必要です。</string>
+    <string name="child_pairing_grant_camera">カメラの権限を許可する</string>
+    <string name="child_pairing_connecting">親デバイスに接続しています…</string>
+    <string name="child_pairing_invalid_qr">そのQRコードは読み取れませんでした。もう一度スキャンしてください。</string>
+    <string name="child_pairing_tailscale_missing">この端末でTailscaleが見つかりませんでした。Tailscaleアプリをインストールし、家族のtailnetにサインインしてから、もう一度お試しください。</string>
+    <string name="child_pairing_error_generic">そのデバイスとペアリングできませんでした：%1$s</string>
+    <string name="child_pairing_scan_again">もう一度スキャンする</string>
+
+    <!-- Label prompt -->
+    <string name="pairing_label_prompt_title">このデバイスの名前を入力</string>
+    <string name="pairing_label_prompt_hint">例：父、母</string>
+    <string name="pairing_label_prompt_default">親</string>
+    <string name="pairing_label_prompt_save">保存</string>
+</resources>
