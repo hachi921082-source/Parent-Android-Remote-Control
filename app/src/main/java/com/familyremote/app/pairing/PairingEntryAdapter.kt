@@ -6,6 +6,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.familyremote.app.databinding.ItemPairingEntryBinding
 
 class PairingEntryAdapter(
+    private val onConnect: (PairingEntry) -> Unit,
     private val onRename: (PairingEntry) -> Unit,
     private val onDelete: (PairingEntry) -> Unit
 ) : RecyclerView.Adapter<PairingEntryAdapter.ViewHolder>() {
@@ -33,6 +34,9 @@ class PairingEntryAdapter(
 
         fun bind(entry: PairingEntry) {
             binding.labelText.text = entry.label
+            // Tapping the row itself starts a connection to this device (§4 "child selects a
+            // PairingEntry"); rename/delete stay on their own icon buttons as secondary actions.
+            binding.root.setOnClickListener { onConnect(entry) }
             binding.renameButton.setOnClickListener { onRename(entry) }
             binding.deleteButton.setOnClickListener { onDelete(entry) }
         }

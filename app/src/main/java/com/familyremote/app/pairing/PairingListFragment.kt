@@ -9,6 +9,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.familyremote.app.R
+import com.familyremote.app.child.SessionActivity
 import com.familyremote.app.databinding.FragmentPairingListBinding
 import com.google.android.material.textfield.TextInputEditText
 
@@ -39,7 +40,11 @@ class PairingListFragment : Fragment(R.layout.fragment_pairing_list) {
         super.onViewCreated(view, savedInstanceState)
         repository = PairingRepository(requireContext())
 
-        adapter = PairingEntryAdapter(onRename = ::showRenameDialog, onDelete = ::showDeleteDialog)
+        adapter = PairingEntryAdapter(
+            onConnect = ::startConnection,
+            onRename = ::showRenameDialog,
+            onDelete = ::showDeleteDialog
+        )
         binding.pairingRecyclerView.layoutManager = LinearLayoutManager(requireContext())
         binding.pairingRecyclerView.adapter = adapter
 
@@ -60,6 +65,18 @@ class PairingListFragment : Fragment(R.layout.fragment_pairing_list) {
         adapter.submitList(entries)
         binding.emptyText.visibility = if (entries.isEmpty()) View.VISIBLE else View.GONE
         binding.pairingRecyclerView.visibility = if (entries.isEmpty()) View.GONE else View.VISIBLE
+    }
+
+    /**
+     * "Child selects a PairingEntry" (docs/plans/connection-status-and-resilience/PLAN.md §4 step
+     * 1) -- tapping a row starts a connection attempt to that device. With exactly one pairing
+     * entry, this single tap already is the "auto-skip" case: there is no list of choices to pick
+     * from in the first place, so no separate selection UI is ever shown -- see that plan's §4 for
+     * why this fragment does not additionally auto-navigate away on its own when opened with only
+     * one entry (it doubles as the pairing-management screen, reused unchanged from Tier 0).
+     */
+    private fun startConnection(entry: PairingEntry) {
+        startActivity(SessionActivity.createIntent(requireContext(), entry.id))
     }
 
     private fun showRenameDialog(entry: PairingEntry) {
