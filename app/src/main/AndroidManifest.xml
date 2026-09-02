@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Pairing handshake and future live-session traffic (net package), all over the
+         Tailscale-provided IP connectivity: see docs/plans/README.md Constants. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- QR scanning on the child device during pairing (ChildPairingScanActivity). -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.camera.autofocus"
+        android:required="false" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.FamilyRemote">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:theme="@style/Theme.FamilyRemote">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Onboarding wizard (parent-operated steps: accessibility walkthrough,
+             MyOS checklist, pairing/QR display). Chained via ActivityResultLauncher,
+             see docs/plans/pairing-and-onboarding/PLAN.md sections 5-6. -->
+        <activity android:name=".pairing.OnboardingWizardActivity" android:exported="false" />
+        <activity android:name=".pairing.AccessibilityOnboardingActivity" android:exported="false" />
+        <activity android:name=".pairing.MyOsSetupChecklistActivity" android:exported="false" />
+        <activity android:name=".pairing.ParentPairingActivity" android:exported="false" />
+
+        <!-- Child-side pairing flow. -->
+        <activity android:name=".pairing.ChildPairingScanActivity" android:exported="false" />
+        <activity android:name=".pairing.PairingLabelPromptActivity" android:exported="false" />
+        <activity android:name=".pairing.PairingListActivity" android:exported="false" />
+
+    </application>
+
+</manifest>
