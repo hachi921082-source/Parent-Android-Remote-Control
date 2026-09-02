@@ -82,11 +82,19 @@ class ParentSessionServer(
         }
     }
 
-    suspend fun sendVideoFrame(message: VideoFrameMessage): Boolean = withContext(Dispatchers.IO) {
+    suspend fun sendVideoFrame(message: VideoFrameMessage): Boolean = sendFrame(message.toFrame())
+
+    /**
+     * Generic frame send, reused by [sendVideoFrame] and by
+     * docs/plans/connection-status-and-resilience/PLAN.md §5's `STATUS_HEARTBEAT`/`STATUS_EVENT`
+     * push (see [com.familyremote.app.parent.ScreenShareForegroundService]'s `ParentStatusMonitor`
+     * wiring) -- this class does not need to know the shape of every message type it forwards.
+     */
+    suspend fun sendFrame(frame: MessageFrame): Boolean = withContext(Dispatchers.IO) {
         val activeSocket = socket
         if (activeSocket == null || !connected) return@withContext false
         try {
-            message.toFrame().writeTo(activeSocket.getOutputStream())
+            frame.writeTo(activeSocket.getOutputStream())
             true
         } catch (e: IOException) {
             connected = false
