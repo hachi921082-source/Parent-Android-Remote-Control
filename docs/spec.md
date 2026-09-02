@@ -57,6 +57,7 @@
 
 - Platform: Android.
 - Minimum supported Android version: 8.0, driven by the minimum version required by the Tailscale Android app (used for connectivity).
+- UI language: Japanese, English, and Chinese (ja/en/zh), selected automatically from the device's OS system locale (no in-app manual language picker); falls back to English for any other locale. See `docs/DECISIONS.md` #14.
 
 ## 7. Security Posture
 
