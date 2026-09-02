@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">家庭远程助手</string>
+
+    <!-- Main tabs -->
+    <string name="tab_parent">家长</string>
+    <string name="tab_child">子女</string>
+
+    <!-- Parent home -->
+    <string name="parent_home_title">家长模式</string>
+    <string name="parent_home_show_screen_placeholder">“显示屏幕”功能将在屏幕共享实现后可用。</string>
+    <string name="parent_home_pair_button">配对新的子女设备</string>
+
+    <!-- Child home / pairing list -->
+    <string name="pairing_list_title">已配对的家长设备</string>
+    <string name="pairing_list_empty">还没有配对任何家长设备。点击 + 添加一个。</string>
+    <string name="pairing_list_add_fab_desc">添加家长设备</string>
+    <string name="pairing_entry_rename_desc">重命名</string>
+    <string name="pairing_entry_delete_desc">删除</string>
+    <string name="pairing_rename_dialog_title">重命名设备</string>
+    <string name="pairing_delete_dialog_title">要删除此配对吗？</string>
+    <string name="pairing_delete_dialog_message">此操作仅会从本设备中删除该配对信息，不会通知家长设备。</string>
+    <string name="action_ok">确定</string>
+    <string name="action_cancel">取消</string>
+    <string name="action_delete">删除</string>
+    <string name="action_continue">继续</string>
+    <string name="action_retry">重试</string>
+    <string name="action_done">完成</string>
+
+    <!-- Accessibility onboarding -->
+    <string name="accessibility_onboarding_title">启用无障碍服务</string>
+    <string name="accessibility_onboarding_explanation">为了让子女设备在远程协助期间可以在本设备上点按、滑动和输入文字，需要启用无障碍服务权限。此设置只需完成一次。</string>
+    <string name="accessibility_onboarding_open_settings">打开无障碍设置</string>
+    <string name="accessibility_onboarding_status_granted">状态：已启用</string>
+    <string name="accessibility_onboarding_status_not_granted">状态：尚未启用</string>
+
+    <!-- MyOS setup checklist -->
+    <string name="myos_checklist_title">后台运行设置</string>
+    <string name="myos_checklist_intro_specific">此设备可能会强行关闭在后台运行的应用。请完成以下一次性设置，以确保远程共享能持续正常工作：</string>
+    <string name="myos_checklist_intro_generic">如果此手机会强行关闭后台应用，以下设置可能有助于让共享会话保持稳定：</string>
+    <string name="myos_checklist_step_battery">请允许本应用不受限制地使用电量（设置 → 应用 → 家庭远程助手 → 电池 → 无限制）。</string>
+    <string name="myos_checklist_step_battery_button">打开应用电池设置</string>
+    <string name="myos_checklist_step_autostart">设置 → 应用管理 → 自启动管理 中启用“家庭远程助手”。（此设备暂无直接跳转链接，请手动前往设置。）</string>
+    <string name="myos_checklist_checkbox_generic">我已了解</string>
+    <string name="myos_checklist_checkbox_battery">我已完成电池设置</string>
+    <string name="myos_checklist_checkbox_autostart">我已完成自启动设置</string>
+
+    <!-- Parent pairing (QR display) -->
+    <string name="parent_pairing_title">配对新的子女设备</string>
+    <string name="parent_pairing_instructions">请在子女的设备上打开本应用，切换到“子女”标签页，点击“添加家长设备”，然后扫描此二维码。</string>
+    <string name="parent_pairing_waiting">正在等待子女设备扫描此二维码…</string>
+    <string name="parent_pairing_success">配对成功！</string>
+    <string name="parent_pairing_tailscale_missing">未在此设备上检测到 Tailscale。请安装 Tailscale 应用并登录家庭 tailnet，然后重试。</string>
+    <string name="parent_pairing_open_tailscale">打开 Tailscale</string>
+    <string name="parent_pairing_error_timeout">配对超时，请重试。</string>
+    <string name="parent_pairing_error_generic">配对失败：%1$s</string>
+
+    <!-- Child pairing scan -->
+    <string name="child_pairing_scan_title">添加家长设备</string>
+    <string name="child_pairing_camera_permission_rationale">需要相机权限才能扫描家长设备上显示的二维码。</string>
+    <string name="child_pairing_grant_camera">授予相机权限</string>
+    <string name="child_pairing_connecting">正在连接家长设备…</string>
+    <string name="child_pairing_invalid_qr">无法识别该二维码，请重新扫描。</string>
+    <string name="child_pairing_tailscale_missing">未在此设备上检测到 Tailscale。请安装 Tailscale 应用并登录家庭 tailnet，然后重试。</string>
+    <string name="child_pairing_error_generic">无法与该设备配对：%1$s</string>
+    <string name="child_pairing_scan_again">重新扫描</string>
+
+    <!-- Label prompt -->
+    <string name="pairing_label_prompt_title">为此设备命名</string>
+    <string name="pairing_label_prompt_hint">例如：爸爸、妈妈</string>
+    <string name="pairing_label_prompt_default">家长</string>
+    <string name="pairing_label_prompt_save">保存</string>
+</resources>
