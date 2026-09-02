@@ -11,6 +11,7 @@ Each feature's implementation plan lives in its own directory: `docs/plans/<feat
 5. Shared Session/Connection State Machine
 6. Shared Geometry / Coordinate-Scaling Concepts
 7. Shared Constants
+8. Implementation Order & Progress
 
 ## 1. Feature Map
 
@@ -105,3 +106,20 @@ data class FrameGeometry(
 | Tailscale CGNAT range | `100.64.0.0/10` | implementation choice, used by `TailscaleAddressResolver` (pairing-and-onboarding PLAN.md §3) |
 
 All interval/threshold values above are carried through directly from detailed-spec.md — not re-derived. Port numbers and the CGNAT-range detection technique are implementation choices with no product-facing consequence.
+
+## 8. Implementation Order & Progress
+
+Dependency-tier table, derived from a class/binding-level reading of all five PLAN.md files (not from the feature groupings in §1, which reflect spec-section boundaries, not build order). "Depends on" means the feature's own plan explicitly calls into, binds to, or edits a class owned by the other feature — not just a shared wire-protocol/type reference already fixed in §3–§7 above.
+
+| Tier | Feature | Depends on | Status |
+|---|---|---|---|
+| 0 | Pairing & Onboarding | — | Not started |
+| 1 | Screen Sharing Core | Pairing & Onboarding (`PairingRepository`/`AuthorizedChild`, §2.2) | Not started |
+| 2 | Connection Status & Resilience | Pairing & Onboarding (`PairingEntry`/`TailscaleAddressResolver`/`PairingListScreen`); Screen Sharing Core (`ParentStatusMonitor` hands off to `ParentSessionServer`, and is "started alongside" `ScreenShareForegroundService` — needs that class merged to wire into) | Not started |
+| 2 | Remote Input Control | Screen Sharing Core (`ParentAccessibilityService` binds to `ScreenShareForegroundService` via a companion reference — needs that class merged); Connection Status & Resilience is a **type-level** dependency only (`ConnectionState` sealed class, already fixed in §5 above) — `TapInputController`/`TextInputBar` read it but don't need that feature's actual runtime logic (`HeartbeatWatchdog` etc.) merged first, so this can proceed in the same tier as Connection Status & Resilience, not after it | Not started |
+| 3 | Screen Rotation Handling | Screen Sharing Core (§2 is implemented as an addition to `ScreenShareForegroundService` itself — same-file edit, not just a call-out); Remote Input Control (`VideoDecoderView`'s dimension-change handling must already exist) | Not started |
+
+**Notes:**
+- Tier 0 and Tier 1 each have only one feature — no parallelism is available until Tier 2, which has two (Connection Status & Resilience, Remote Input Control). They touch different files (no same-file conflict identified), so both can be worked in separate worktrees simultaneously once Tier 1 is merged.
+- **Forward-reference stub**: Pairing & Onboarding (Tier 0) references `AccessibilityPermissionMonitor`, a class owned by Remote Input Control (Tier 2) — its onboarding "Accessibility Service walkthrough" screen needs a granted/not-granted check before that shared class exists yet. Implement this with a local inline permission check (`Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES`, the same one-liner `AccessibilityPermissionMonitor` itself wraps) in Tier 0, then swap it for the real shared `AccessibilityPermissionMonitor` once Tier 2 lands — do not block Tier 0 on Tier 2, and do not invent a different/parallel permission-check design that could drift from the real one.
+- This table is updated at each feature's merge (its own row's Status), not per-session. A new tier's worktrees are only cut once every row in all earlier tiers reads "Merged."
