@@ -78,4 +78,20 @@
     <string name="pairing_label_prompt_hint">e.g. Father, Mother</string>
     <string name="pairing_label_prompt_default">Parent</string>
     <string name="pairing_label_prompt_save">Save</string>
+
+    <!-- Connection status & resilience (child-side session screen) -->
+    <string name="session_waiting_title">Waiting for %1$s to start sharing…</string>
+    <string name="session_listener_error">Could not start listening for the parent device. Please check your Tailscale connection and try again.</string>
+    <string name="session_reconnecting_banner">Reconnecting…</string>
+    <string name="session_disconnected_title">Connection to %1$s was lost. Ask them to try again if this continues.</string>
+    <string name="session_disconnected_back">Back to device list</string>
+    <string name="session_status_placeholder">Connected. Waiting for status…</string>
+    <string name="session_status_wifi_connected">Wi-Fi: Connected</string>
+    <string name="session_status_wifi_disconnected">Wi-Fi: Disconnected</string>
+    <string name="session_status_network_type">Network: %1$s</string>
+    <string name="session_status_signal">Signal: %1$d dBm</string>
+    <string name="session_status_ssid">Network name: %1$s</string>
+    <string name="network_type_wifi">Wi-Fi</string>
+    <string name="network_type_cellular">Mobile data</string>
+    <string name="network_type_none">No connection</string>
 </resources>

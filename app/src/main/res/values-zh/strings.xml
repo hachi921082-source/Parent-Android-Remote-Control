@@ -78,4 +78,20 @@
     <string name="pairing_label_prompt_hint">例如：爸爸、妈妈</string>
     <string name="pairing_label_prompt_default">家长</string>
     <string name="pairing_label_prompt_save">保存</string>
+
+    <!-- Connection status & resilience (child-side session screen) -->
+    <string name="session_waiting_title">正在等待%1$s开始共享屏幕…</string>
+    <string name="session_listener_error">无法开始等待家长设备的连接。请检查 Tailscale 连接状态，然后重试。</string>
+    <string name="session_reconnecting_banner">正在重新连接…</string>
+    <string name="session_disconnected_title">与%1$s的连接已断开。如果情况持续，请让对方重新操作一次。</string>
+    <string name="session_disconnected_back">返回设备列表</string>
+    <string name="session_status_placeholder">已连接，正在等待状态信息…</string>
+    <string name="session_status_wifi_connected">Wi-Fi：已连接</string>
+    <string name="session_status_wifi_disconnected">Wi-Fi：未连接</string>
+    <string name="session_status_network_type">网络：%1$s</string>
+    <string name="session_status_signal">信号强度：%1$d dBm</string>
+    <string name="session_status_ssid">网络名称：%1$s</string>
+    <string name="network_type_wifi">Wi-Fi</string>
+    <string name="network_type_cellular">移动数据</string>
+    <string name="network_type_none">无连接</string>
 </resources>

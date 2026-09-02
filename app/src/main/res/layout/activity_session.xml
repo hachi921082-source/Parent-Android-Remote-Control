@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Single-screen child-side connection lifecycle host, per
+    docs/plans/connection-status-and-resilience/PLAN.md §3/§4/§6: WaitingForParent / Live /
+    Reconnecting / Disconnected all live in this one Activity (visibility-toggled sections) rather
+    than separate Activities, since a live socket connection must not be dropped by an Activity
+    transition. The `liveContentContainer` is a placeholder for remote-input-control's video
+    surface (docs/plans/remote-input-control/PLAN.md), not yet built; this plan only owns the
+    connection-status display shown here.
+-->
+
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black">
+
+    <!-- WaitingForParent (§4) -->
+    <LinearLayout
+        android:id="@+id/waitingSection"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="24dp">
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:id="@+id/waitingText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:gravity="center"
+            android:textColor="@android:color/white"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/listenerErrorText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:gravity="center"
+            android:textColor="@android:color/holo_red_light"
+            android:visibility="gone" />
+
+        <Button
+            android:id="@+id/retryButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/action_retry"
+            android:visibility="gone" />
+
+        <Button
+            android:id="@+id/waitingCancelButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="@string/action_cancel" />
+
+    </LinearLayout>
+
+    <!-- Live (§5) / Reconnecting (§6, additive banner over the same content) -->
+    <FrameLayout
+        android:id="@+id/liveSection"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone">
+
+        <!-- Placeholder for remote-input-control's VideoDecoderView (not yet built); this plan
+             only owns the connection-status text shown here. -->
+        <LinearLayout
+            android:id="@+id/liveContentContainer"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="24dp">
+
+            <TextView
+                android:id="@+id/liveStatusText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textColor="@android:color/white"
+                android:textSize="16sp" />
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/reconnectingBanner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top"
+            android:background="#CC000000"
+            android:gravity="center"
+            android:padding="12dp"
+            android:text="@string/session_reconnecting_banner"
+            android:textColor="@android:color/white"
+            android:visibility="gone" />
+
+    </FrameLayout>
+
+    <!-- Disconnected (§6) -->
+    <LinearLayout
+        android:id="@+id/disconnectedSection"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="24dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/disconnectedText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textColor="@android:color/white"
+            android:textSize="18sp" />
+
+        <Button
+            android:id="@+id/disconnectedBackButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="@string/session_disconnected_back" />
+
+    </LinearLayout>
+
+</FrameLayout>
