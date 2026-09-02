@@ -8,8 +8,16 @@
 
     <!-- Parent home -->
     <string name="parent_home_title">家长模式</string>
-    <string name="parent_home_show_screen_placeholder">“显示屏幕”功能将在屏幕共享实现后可用。</string>
+    <string name="parent_home_show_screen_button">显示屏幕</string>
     <string name="parent_home_pair_button">配对新的子女设备</string>
+
+    <!-- Show Screen widget (placeholder icon/label; see ShowScreenWidgetProvider) -->
+    <string name="widget_show_screen_label">显示屏幕</string>
+
+    <!-- Screen share foreground service notification -->
+    <string name="screen_share_notification_channel_name">屏幕共享</string>
+    <string name="screen_share_notification_title">屏幕共享中</string>
+    <string name="screen_share_notification_text">此设备的屏幕正在共享。点击以打开应用。</string>
 
     <!-- Child home / pairing list -->
     <string name="pairing_list_title">已配对的家长设备</string>
