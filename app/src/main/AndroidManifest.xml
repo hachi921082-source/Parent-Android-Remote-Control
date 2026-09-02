@@ -14,6 +14,21 @@
         android:name="android.hardware.camera.autofocus"
         android:required="false" />
 
+    <!-- Screen sharing core (parent side): ScreenShareForegroundService owns the MediaProjection
+         capture/encode/network session and keeps the parent's screen on while sharing. See
+         docs/plans/screen-sharing-core/PLAN.md §2, §7, §8. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- Foreground-service notification visibility on Android 13+; not proactively requested at
+         runtime (no dedicated request step) to preserve the widget's 2-tap design (PLAN.md §3);
+         if not granted, the notification is simply not shown, the service still runs normally. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- SessionKeepAliveScheduler's Layer-2 defense-in-depth check (PLAN.md §7). Whether this is
+         reliably grantable/effective on the target device is an open, tracked verification item
+         (see docs/QA.md), not something this manifest declaration alone resolves. -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -44,6 +59,33 @@
         <activity android:name=".pairing.ChildPairingScanActivity" android:exported="false" />
         <activity android:name=".pairing.PairingLabelPromptActivity" android:exported="false" />
         <activity android:name=".pairing.PairingListActivity" android:exported="false" />
+
+        <!-- Screen sharing core (parent side). See docs/plans/screen-sharing-core/PLAN.md §2. -->
+        <activity
+            android:name=".parent.ShareStartTrampolineActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+        <service
+            android:name=".parent.ScreenShareForegroundService"
+            android:exported="false"
+            android:foregroundServiceType="mediaProjection" />
+
+        <receiver
+            android:name=".parent.SessionKeepAliveReceiver"
+            android:exported="false" />
+
+        <receiver
+            android:name=".parent.ShowScreenWidgetProvider"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/show_screen_widget_info" />
+        </receiver>
 
     </application>
 

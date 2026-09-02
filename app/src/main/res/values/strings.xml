@@ -8,8 +8,16 @@
 
     <!-- Parent home -->
     <string name="parent_home_title">Parent mode</string>
-    <string name="parent_home_show_screen_placeholder">"Show Screen" will be available once screen sharing is implemented.</string>
+    <string name="parent_home_show_screen_button">Show Screen</string>
     <string name="parent_home_pair_button">Pair a new child device</string>
+
+    <!-- Show Screen widget (placeholder icon/label; see ShowScreenWidgetProvider) -->
+    <string name="widget_show_screen_label">Show Screen</string>
+
+    <!-- Screen share foreground service notification -->
+    <string name="screen_share_notification_channel_name">Screen sharing</string>
+    <string name="screen_share_notification_title">Screen sharing is active</string>
+    <string name="screen_share_notification_text">Your screen is being shared. Tap to open the app.</string>
 
     <!-- Child home / pairing list -->
     <string name="pairing_list_title">Paired parent devices</string>
