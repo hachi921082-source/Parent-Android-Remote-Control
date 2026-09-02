@@ -231,6 +231,28 @@ class ScreenShareForegroundService : Service() {
             serversToClose.forEach { it.sendSessionEndAndClose(reason) }
         }
 
+        releaseCaptureResources()
+
+        // Intentional/normal stop -- clear the durable flag so the Layer-2 watchdog
+        // (SessionKeepAliveReceiver/SessionStateStore, PLAN.md §7) knows there is nothing left to
+        // restart, and cancel its pending alarm outright.
+        sessionStateStore.clear()
+        keepAliveScheduler.cancel()
+
+        stopForeground(STOP_FOREGROUND_REMOVE)
+        stopSelf()
+    }
+
+    /**
+     * Releases the wake lock, `VirtualDisplay`, encoder, and `MediaProjection` -- the resources
+     * owned by a single capture session. Shared by [stopSession] (intentional stop) and
+     * [onDestroy] (covers PLAN.md §10 Case 1: an unexpected OS-triggered destroy of just the
+     * Service component while the app process survives, which would otherwise leak the wake lock
+     * indefinitely since a freshly recreated Service instance's [ParentWakeLockController] starts
+     * with no reference to the lock the old instance is still holding). Null-safe on every field,
+     * so it is harmless to call again after [stopSession] already released everything.
+     */
+    private fun releaseCaptureResources() {
         wakeLockController.release()
         virtualDisplay?.release()
         virtualDisplay = null
@@ -241,12 +263,6 @@ class ScreenShareForegroundService : Service() {
             it.stop()
         }
         mediaProjection = null
-
-        sessionStateStore.clear()
-        keepAliveScheduler.cancel()
-
-        stopForeground(STOP_FOREGROUND_REMOVE)
-        stopSelf()
     }
 
     /**
@@ -266,6 +282,14 @@ class ScreenShareForegroundService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+        // Mirrors stopSession()'s resource cleanup so an unexpected OS-triggered destroy of just
+        // the Service component (process survives, PLAN.md §10 Case 1) can't leak the wake lock,
+        // VirtualDisplay, encoder, or MediaProjection. Deliberately does NOT touch
+        // sessionStateStore/keepAliveScheduler here -- those encode "this was an intentional
+        // stop" and must stay untouched (sessionWasActive left true) on an unexpected destroy so
+        // the Layer-2 watchdog (SessionKeepAliveReceiver, PLAN.md §7) can detect and restart it.
+        // Harmless to call again if stopSession() already ran (every release below is null-safe).
+        releaseCaptureResources()
         serviceJob.cancel()
         _isRunning.value = false
     }
