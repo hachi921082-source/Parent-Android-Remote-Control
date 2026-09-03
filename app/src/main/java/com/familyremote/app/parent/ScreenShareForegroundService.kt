@@ -16,6 +16,8 @@ import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
+import android.util.DisplayMetrics
+import android.view.Display
 import androidx.core.app.NotificationCompat
 import com.familyremote.app.MainActivity
 import com.familyremote.app.R
@@ -56,6 +58,7 @@ class ScreenShareForegroundService : Service() {
     private lateinit var sessionStateStore: SessionStateStore
     private lateinit var keepAliveScheduler: SessionKeepAliveScheduler
     private lateinit var statusMonitor: ParentStatusMonitor
+    private lateinit var displayManager: DisplayManager
 
     private var mediaProjection: MediaProjection? = null
     private var virtualDisplay: VirtualDisplay? = null
@@ -63,6 +66,24 @@ class ScreenShareForegroundService : Service() {
 
     private var captureWidth = 0
     private var captureHeight = 0
+
+    private var displayListenerRegistered = false
+
+    /**
+     * Screen-rotation handling (docs/plans/screen-rotation-handling/PLAN.md §2): fires reliably on
+     * rotation independent of any Activity lifecycle (this Service has no Activity to hang a
+     * `Configuration` callback off during background operation). Filters to the default (real,
+     * physical) display -- `onDisplayChanged` also fires for the `VirtualDisplay` this service
+     * itself owns (e.g. as a side effect of [reconfigureCaptureForDisplayChange] below), which must
+     * not be treated as a fresh rotation to react to again.
+     */
+    private val displayListener = object : DisplayManager.DisplayListener {
+        override fun onDisplayAdded(displayId: Int) = Unit
+        override fun onDisplayRemoved(displayId: Int) = Unit
+        override fun onDisplayChanged(displayId: Int) {
+            if (displayId == Display.DEFAULT_DISPLAY) onDefaultDisplayChanged()
+        }
+    }
 
     private val sessionServersByChild = mutableMapOf<UUID, ParentSessionServer>()
     private var expectedChildCount = 0
@@ -87,6 +108,7 @@ class ScreenShareForegroundService : Service() {
         _isRunning.value = true
         activeInstance = this
         mediaProjectionManager = getSystemService(MediaProjectionManager::class.java)
+        displayManager = getSystemService(DisplayManager::class.java)
         wakeLockController = ParentWakeLockController(this)
         sessionStateStore = SessionStateStore(this)
         keepAliveScheduler = SessionKeepAliveScheduler(this)
@@ -160,12 +182,100 @@ class ScreenShareForegroundService : Service() {
         wakeLockController.acquire()
         sessionStateStore.markActive()
         keepAliveScheduler.schedule()
+        registerDisplayListener()
         dialAuthorizedChildren()
         // Started alongside this service per docs/plans/connection-status-and-resilience/PLAN.md
         // §5 -- hands its payloads off to whichever ParentSessionServer instances are connected
         // at broadcast time (mirrors broadcastVideoFrame's fan-out below).
         statusMonitor.start(serviceScope)
         startAccessibilityStatusTicker()
+    }
+
+    private fun registerDisplayListener() {
+        if (displayListenerRegistered) return
+        displayManager.registerDisplayListener(displayListener, Handler(Looper.getMainLooper()))
+        displayListenerRegistered = true
+    }
+
+    private fun unregisterDisplayListener() {
+        if (!displayListenerRegistered) return
+        displayManager.unregisterDisplayListener(displayListener)
+        displayListenerRegistered = false
+    }
+
+    /**
+     * Screen-rotation handling (docs/plans/screen-rotation-handling/PLAN.md §2): the default
+     * display's dimensions changed (e.g. the parent physically rotated their device). Compares
+     * against the currently configured capture dimensions and reconfigures the capture pipeline in
+     * place if they differ -- width/height end up swapped for a 90deg/270deg rotation, so a plain
+     * inequality check (rather than any orientation-specific branching) is enough to cover both
+     * portrait->landscape and landscape->portrait symmetrically (detailed-spec §12's "applies
+     * symmetrically" requirement).
+     */
+    private fun onDefaultDisplayChanged() {
+        if (mediaProjection == null || virtualDisplay == null) return // no active capture to reconfigure.
+        val display = displayManager.getDisplay(Display.DEFAULT_DISPLAY) ?: return
+        val metrics = DisplayMetrics()
+        @Suppress("DEPRECATION")
+        display.getRealMetrics(metrics)
+        if (metrics.widthPixels == captureWidth && metrics.heightPixels == captureHeight) return
+        reconfigureCaptureForDisplayChange(metrics.widthPixels, metrics.heightPixels, metrics.densityDpi)
+    }
+
+    /**
+     * In-session capture reconfiguration -- does not stop/restart `MediaProjection` or touch the
+     * network session (docs/plans/screen-rotation-handling/PLAN.md §2/§5). A fresh
+     * [ScreenCaptureEncoder]/`MediaCodec` instance is created for the new dimensions on every API
+     * level (simpler to reason about than in-place `MediaCodec` reconfigure, and necessary so the
+     * encoded output -- and therefore the `VIDEO_FRAME` header the child relies on to detect the
+     * change, docs/plans/README.md §4 -- actually reflects the new dimensions rather than staying
+     * at the old encode resolution while only the `VirtualDisplay`'s logical size changes). The new
+     * encoder is started and handed to the display *before* the old encoder is torn down, to keep
+     * the capture gap as short as possible (detailed-spec §12/§5's continuity requirement).
+     *
+     * API tiers only differ in how the `VirtualDisplay` itself picks up the new encoder surface:
+     * `VirtualDisplay.resize()` (API 31+) is an in-place resize of the existing `VirtualDisplay`
+     * (same object, same `MediaProjection` grant); API 26-30 has no `resize()` API, so the
+     * `VirtualDisplay` itself is released and recreated via the same `MediaProjection` grant
+     * (`createVirtualDisplay` is a normal, repeatable operation on an already-granted
+     * `MediaProjection`, not equivalent to Decision #1's one-time consent dialog).
+     */
+    private fun reconfigureCaptureForDisplayChange(newWidth: Int, newHeight: Int, dpi: Int) {
+        val projection = mediaProjection ?: return
+        try {
+            val newEncoder = ScreenCaptureEncoder(onNalUnit = { data, presentationTimeUs ->
+                serviceScope.launch(Dispatchers.IO) { broadcastVideoFrame(data, presentationTimeUs) }
+            })
+            newEncoder.start(newWidth, newHeight)
+
+            val oldVirtualDisplay = virtualDisplay
+            virtualDisplay = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && oldVirtualDisplay != null) {
+                oldVirtualDisplay.resize(newWidth, newHeight, dpi)
+                oldVirtualDisplay.surface = newEncoder.inputSurface
+                oldVirtualDisplay
+            } else {
+                oldVirtualDisplay?.release()
+                projection.createVirtualDisplay(
+                    VIRTUAL_DISPLAY_NAME,
+                    newWidth,
+                    newHeight,
+                    dpi,
+                    DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
+                    newEncoder.inputSurface,
+                    null,
+                    null
+                )
+            }
+
+            encoder?.stop()
+            encoder = newEncoder
+            captureWidth = newWidth
+            captureHeight = newHeight
+        } catch (e: Exception) {
+            // Reconfiguration failed (e.g. transient codec resource contention) -- leave whatever
+            // was already running in place rather than tearing down a working session over a failed
+            // rotation reconfigure. The next onDisplayChanged (e.g. rotating back) retries.
+        }
     }
 
     /**
@@ -319,6 +429,7 @@ class ScreenShareForegroundService : Service() {
      * so it is harmless to call again after [stopSession] already released everything.
      */
     private fun releaseCaptureResources() {
+        unregisterDisplayListener()
         statusMonitor.stop()
         wakeLockController.release()
         virtualDisplay?.release()
