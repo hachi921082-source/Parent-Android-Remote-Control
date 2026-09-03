@@ -1,0 +1,5 @@
+# .NET / Visual Studio build output — scoped to pc-client/ only (the rest of the repo's root
+# .gitignore covers the Android/Gradle side and has no C#-specific entries).
+bin/
+obj/
+*.user
