@@ -115,7 +115,7 @@ Dependency-tier table, derived from a class/binding-level reading of all five PL
 |---|---|---|---|
 | 0 | Pairing & Onboarding | — | Merged |
 | 1 | Screen Sharing Core | Pairing & Onboarding (`PairingRepository`/`AuthorizedChild`, §2.2) | Merged |
-| 2 | Connection Status & Resilience | Pairing & Onboarding (`PairingEntry`/`TailscaleAddressResolver`/`PairingListScreen`); Screen Sharing Core (`ParentStatusMonitor` hands off to `ParentSessionServer`, and is "started alongside" `ScreenShareForegroundService` — needs that class merged to wire into) | Not started |
+| 2 | Connection Status & Resilience | Pairing & Onboarding (`PairingEntry`/`TailscaleAddressResolver`/`PairingListScreen`); Screen Sharing Core (`ParentStatusMonitor` hands off to `ParentSessionServer`, and is "started alongside" `ScreenShareForegroundService` — needs that class merged to wire into) | Merged |
 | 2 | Remote Input Control | Screen Sharing Core (`ParentAccessibilityService` binds to `ScreenShareForegroundService` via a companion reference — needs that class merged); Connection Status & Resilience is a **type-level** dependency only (`ConnectionState` sealed class, already fixed in §5 above) — `TapInputController`/`TextInputBar` read it but don't need that feature's actual runtime logic (`HeartbeatWatchdog` etc.) merged first, so this can proceed in the same tier as Connection Status & Resilience, not after it | Not started |
 | 3 | Screen Rotation Handling | Screen Sharing Core (§2 is implemented as an addition to `ScreenShareForegroundService` itself — same-file edit, not just a call-out); Remote Input Control (`VideoDecoderView`'s dimension-change handling must already exist) | Not started |
 
