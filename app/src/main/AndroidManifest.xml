@@ -66,8 +66,11 @@
         <!-- Connection status & resilience (child side). See
              docs/plans/connection-status-and-resilience/PLAN.md §2/§3. configChanges: this
              Activity owns a live socket connection across WaitingForParent/Live/Reconnecting;
-             an ordinary rotation must not recreate it and drop that connection (interim measure
-             pending docs/plans/screen-rotation-handling/PLAN.md's proper child-side reflow). -->
+             an ordinary child-device rotation must not recreate it and drop that connection. This
+             is the final design, not an interim measure: docs/plans/screen-rotation-handling/PLAN.md
+             §4 confirms no further child-side reflow handling is needed beyond what
+             VideoDecoderView already does on a layout-driven onSizeChanged (which still fires
+             normally here; configChanges only suppresses Activity recreation, not layout). -->
         <activity
             android:name=".child.SessionActivity"
             android:exported="false"

@@ -26,8 +26,12 @@ import java.util.UUID
  * See res/layout/activity_session.xml for why this is one Activity with visibility-toggled
  * sections rather than several -- a live socket connection must not be dropped by an Activity
  * transition. `android:configChanges` is set on this Activity in the manifest (survives rotation
- * without recreating) for the same reason, as an interim measure pending
- * docs/plans/screen-rotation-handling/PLAN.md's proper child-side reflow handling.
+ * without recreating) for the same reason -- this is the final design (confirmed by
+ * docs/plans/screen-rotation-handling/PLAN.md §4): `VideoDecoderView`'s layout-driven
+ * `onSizeChanged` still fires normally on a child-device rotation (configChanges only suppresses
+ * Activity recreation, not layout), and a parent-side rotation is handled independently via the
+ * `VIDEO_FRAME` header's `FrameGeometry` (see that same view), so no additional reflow code is
+ * needed here.
  */
 class SessionActivity : AppCompatActivity() {
 
