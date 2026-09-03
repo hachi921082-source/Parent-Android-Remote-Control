@@ -125,8 +125,12 @@ mechanism/file structure open ("left to implementation"):
   be dropped by an Activity transition, and this project has no androidx `ViewModel`/`SavedState`
   dependency to hand a live connection across separately-instantiated Activities. `configChanges`
   is set on this Activity in the manifest so an ordinary child-device rotation does not recreate it
-  either — an interim measure pending `docs/plans/screen-rotation-handling/PLAN.md`'s proper
-  child-side reflow handling (out of this feature's scope).
+  either. **Update (screen-rotation-handling, Tier 3):** this turned out to be the final design,
+  not an interim one — `docs/plans/screen-rotation-handling/PLAN.md` §4 confirmed no additional
+  child-side reflow code was needed, since `VideoDecoderView`'s layout-driven `onSizeChanged`
+  already fires normally under `configChanges` (which only suppresses Activity recreation, not
+  layout) and a parent-side rotation is handled independently via the `VIDEO_FRAME` header's
+  `FrameGeometry`.
 - **`ConnectionStateViewModel` is a plain class**, not an androidx `ViewModel` subclass (matches
   this project's existing pattern elsewhere, e.g. `ParentPairingActivity` managing state directly
   rather than via a ViewModel) — constructed with the hosting Activity's `lifecycleScope` and torn
