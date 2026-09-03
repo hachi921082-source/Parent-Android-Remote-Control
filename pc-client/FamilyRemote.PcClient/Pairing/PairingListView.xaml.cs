@@ -52,28 +52,20 @@ public partial class PairingListView : UserControl
         AddNewPairingRequested?.Invoke(this, EventArgs.Empty);
     }
 
-    private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+    /// <summary>
+    /// Fired by the row's own <c>Grid.MouseLeftButtonUp</c> (bubbling, not
+    /// <c>Selector.SelectionChanged</c> -- see the XAML comment above the template for why). Deliberately
+    /// not routed through ListBox selection at all: clicking the Rename/Delete buttons inside a row
+    /// marks their own MouseLeftButtonUp handled as an ordinary side effect of ButtonBase's click
+    /// handling, so this handler (registered without handledEventsToo) never runs for those clicks,
+    /// and no separate suppression logic is needed here.
+    /// </summary>
+    private void OnRowClick(object sender, MouseButtonEventArgs e)
     {
-        if (EntryList.SelectedItem is PcPairingEntry entry)
+        if (((FrameworkElement)sender).DataContext is PcPairingEntry entry)
         {
             PairingEntrySelected?.Invoke(this, entry);
         }
-    }
-
-    /// <summary>
-    /// WPF's Selector class-handles row selection on MouseDown with handledEventsToo=true, so
-    /// clicking the Rename/Delete buttons inside a row's DataTemplate would *also* select that row
-    /// (firing <see cref="PairingEntrySelected"/>) before the button's own Click even runs -- harmless
-    /// while nothing consumed that event, but as of
-    /// docs/plans/pc-client/connection-state-ui/PLAN.md §4, row selection now means "start a
-    /// connection to this entry," so without this guard clicking Delete would also kick off a
-    /// WaitingForParent attempt. Marking the tunneling PreviewMouseLeftButtonDown handled here
-    /// suppresses the paired bubbling MouseDown before Selector ever sees it, while leaving the
-    /// button's own Click (fired on MouseUp) untouched.
-    /// </summary>
-    private void OnRowActionButtonPreviewMouseDown(object sender, MouseButtonEventArgs e)
-    {
-        e.Handled = true;
     }
 
     private void OnRenameClick(object sender, RoutedEventArgs e)

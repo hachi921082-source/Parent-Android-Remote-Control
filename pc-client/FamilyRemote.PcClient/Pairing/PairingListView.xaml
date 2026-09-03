@@ -20,11 +20,21 @@
         <TextBlock x:Name="EmptyText" DockPanel.Dock="Top"
                    Text="{x:Static res:Strings.PairingListEmpty}" Visibility="Collapsed" />
 
-        <ListBox x:Name="EntryList" BorderThickness="0" Background="Transparent"
-                 SelectionChanged="OnSelectionChanged">
+        <ListBox x:Name="EntryList" BorderThickness="0" Background="Transparent">
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <Grid Margin="0,4">
+                    <!--
+                        Background="Transparent" makes the whole row (not just the glyphs of the two
+                        TextBlocks below) hit-testable, so MouseLeftButtonUp fires from anywhere in the
+                        row. This bubbling handler intentionally does NOT rely on ListBox's own
+                        SelectionChanged (Selector class-handles MouseDown with handledEventsToo=true,
+                        which cannot be suppressed by the Rename/Delete buttons marking their own event
+                        handled, see git history for the reverted attempt). Instead, the Rename/Delete
+                        buttons mark their MouseLeftButtonUp handled as an ordinary side effect of
+                        ButtonBase's own click handling, so this row-level handler (registered without
+                        handledEventsToo) simply never runs for clicks that landed on a button.
+                    -->
+                    <Grid Margin="0,4" Background="Transparent" MouseLeftButtonUp="OnRowClick">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
@@ -35,11 +45,9 @@
                             <TextBlock Text="{Binding ParentHost}" Opacity="0.7" FontSize="11" />
                         </StackPanel>
                         <Button Grid.Column="1" Content="{x:Static res:Strings.PairingListRename}"
-                                Padding="8,2" Margin="8,0,0,0" Click="OnRenameClick" Tag="{Binding}"
-                                PreviewMouseLeftButtonDown="OnRowActionButtonPreviewMouseDown" />
+                                Padding="8,2" Margin="8,0,0,0" Click="OnRenameClick" Tag="{Binding}" />
                         <Button Grid.Column="2" Content="{x:Static res:Strings.PairingListDelete}"
-                                Padding="8,2" Margin="8,0,0,0" Click="OnDeleteClick" Tag="{Binding}"
-                                PreviewMouseLeftButtonDown="OnRowActionButtonPreviewMouseDown" />
+                                Padding="8,2" Margin="8,0,0,0" Click="OnDeleteClick" Tag="{Binding}" />
                     </Grid>
                 </DataTemplate>
             </ListBox.ItemTemplate>
