@@ -6,7 +6,7 @@
              IsHitTestVisible="False" Visibility="Collapsed">
     <!--
         Additive overlay shown on top of the still-visible last video frame while
-        ConnectionState is Reconnecting (docs/plans/pc-client/connection-state-ui/PLAN.md §7) --
+        ConnectionState is Reconnecting (docs/plans/pc-client/connection-state-ui/PLAN.md §7) —
         never clears whatever content sits underneath it in LiveView. IsHitTestVisible="False" so it
         never intercepts clicks meant for the video/input surface beneath it.
     -->
