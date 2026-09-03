@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <!--
         Display-only panel rendering the latest STATUS_HEARTBEAT/STATUS_EVENT fields (Wi-Fi
-        connected, network type, signal strength, SSID) -- docs/plans/pc-client/connection-state-ui/
+        connected, network type, signal strength, SSID) — docs/plans/pc-client/connection-state-ui/
         PLAN.md §6. Placement within LiveView (side vs. bottom) is left to implementation there;
         this control itself is just a small self-contained block, one joined-lines TextBlock
         (mirrors the Android SessionActivity.renderStatus's single liveStatusText approach).
