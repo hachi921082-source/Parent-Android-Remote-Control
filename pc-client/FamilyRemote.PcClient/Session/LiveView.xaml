@@ -6,12 +6,12 @@
         Live/Reconnecting content (docs/plans/pc-client/connection-state-ui/PLAN.md §6). Composes:
           - VideoSlot / TapMarkerSlot: EMPTY reserved cells for video-and-session/decode's VideoView
             and input-relay's TapMarkerOverlay (docs/plans/pc-client/README.md §8 build-order tiers
-            5/6 -- neither exists yet as of this tier). Left intentionally blank, not stubbed, so
+            5/6 — neither exists yet as of this tier). Left intentionally blank, not stubbed, so
             those tiers can add their control as the sole child of the corresponding Grid cell
             without touching this file's structure.
           - TextInputSlot: same idea, reserved for input-relay's TextInputBar.
           - StatusPanel (ParentStatusPanel): real, functional, this tier's own §6.
-          - Banner (ReconnectingBanner): real, functional, this tier's own §7 -- additive overlay,
+          - Banner (ReconnectingBanner): real, functional, this tier's own §7 — additive overlay,
             never clears VideoSlot's content (there is none yet, but the layout must not assume
             otherwise once Tier 5 lands).
         A fresh LiveView instance is constructed only on a genuinely new Live entry (WaitingForParent
