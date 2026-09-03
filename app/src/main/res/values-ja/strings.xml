@@ -59,6 +59,8 @@
     <!-- Parent pairing (QR display) -->
     <string name="parent_pairing_title">新しい子デバイスとペアリングする</string>
     <string name="parent_pairing_instructions">お子さんの端末でアプリを開き、「子」タブに切り替えて「親デバイスを追加」をタップし、この画面のコードを読み取ってもらってください。</string>
+    <string name="parent_pairing_host_address_label">ホストアドレス：%1$s</string>
+    <string name="parent_pairing_manual_code_label">手動入力コード：%1$s</string>
     <string name="parent_pairing_waiting">子デバイスがこのコードを読み取るのを待っています…</string>
     <string name="parent_pairing_success">ペアリングが完了しました！</string>
     <string name="parent_pairing_tailscale_missing">この端末でTailscaleが見つかりませんでした。Tailscaleアプリをインストールし、家族のtailnetにサインインしてから、もう一度お試しください。</string>
