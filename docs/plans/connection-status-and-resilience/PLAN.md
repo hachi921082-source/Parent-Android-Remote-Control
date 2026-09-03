@@ -12,6 +12,7 @@
 6. Missed-Heartbeat Detection & Reconnecting/Disconnected UI (§14)
 7. Interactions With Other Features
 8. Disconnected-State Messaging After a Process-Kill
+9. Implementation Notes (as-built)
 
 ## 1. Scope
 
@@ -111,3 +112,58 @@ Resolved via `docs/QA.md` "MediaProjection Resume-After-Process-Kill UX" (RESOLV
 - No "tap to resume" affordance, deep link, or distinct wording branch is added for the process-kill case. The child's only recourse in either case is the same as already specified in §6: dismiss to `Idle/PairingSelect` and, once the parent has restarted sharing (manually, via the 2-tap widget flow, per `docs/plans/screen-sharing-core/PLAN.md` §10), start a fresh `WaitingForParent` flow (§4) — there is no special "resume" path distinct from a normal new connection attempt.
 
 This closes the item that previously blocked this section — §1 through §7 above were already fully specified and unaffected by this resolution.
+
+## 9. Implementation Notes (as-built)
+
+Concrete choices made while implementing §1-§8 above, where the plan intentionally left an exact
+mechanism/file structure open ("left to implementation"):
+
+- **One Activity, not several.** `child/SessionActivity.kt` hosts `WaitingForParent`/`Live`/
+  `Reconnecting`/`Disconnected` as visibility-toggled sections within a single Activity
+  (`res/layout/activity_session.xml`), rather than one Activity per state. Reason: `Live`'s socket
+  connection (owned by `ConnectionStateViewModel`, created in `SessionActivity.onCreate`) must not
+  be dropped by an Activity transition, and this project has no androidx `ViewModel`/`SavedState`
+  dependency to hand a live connection across separately-instantiated Activities. `configChanges`
+  is set on this Activity in the manifest so an ordinary child-device rotation does not recreate it
+  either — an interim measure pending `docs/plans/screen-rotation-handling/PLAN.md`'s proper
+  child-side reflow handling (out of this feature's scope).
+- **`ConnectionStateViewModel` is a plain class**, not an androidx `ViewModel` subclass (matches
+  this project's existing pattern elsewhere, e.g. `ParentPairingActivity` managing state directly
+  rather than via a ViewModel) — constructed with the hosting Activity's `lifecycleScope` and torn
+  down explicitly via `release()` from `onDestroy()` (coroutine cancellation alone does not
+  unblock an in-progress blocking `accept()`/socket read, so sockets are closed explicitly).
+- **"Child selects a PairingEntry" (§4 step 1) is realized as: tapping a `PairingEntry` row in the
+  existing `PairingListFragment`/`PairingEntryAdapter` (reused unchanged as `ChildHomeFragment`'s
+  tab content) starts a connection to that device** (`SessionActivity`), while rename/delete stay
+  on their existing separate icon buttons. The "selection step is skipped automatically" wording
+  for the exactly-one-entry case is satisfied by construction: with one entry there is no list of
+  choices to pick from in the first place, so the single tap on that one row is not "choosing
+  among options," just confirming intent — no separate auto-navigate-away-from-the-tab behavior
+  was added, since `ChildHomeFragment` doubles as the pairing-management screen (Tier 0) and
+  force-navigating away every time it is opened would trap a user trying to rename/delete a
+  single-entry pairing. If this reading turns out not to match user intent, it is a one-line UX
+  change (add an auto-navigate check in `ChildHomeFragment`/`PairingListFragment` when exactly one
+  entry exists), not a state-machine change.
+- **Reconnect design**: `ChildSessionListener` keeps its `ServerSocket` open across the whole
+  `Live`/`Reconnecting` lifetime of one `SessionActivity` instance (never closed on a mere
+  missed-heartbeat blip), re-arming a fresh `accept()` loop on it for `Reconnecting`; the 60s
+  give-up deadline (`RECONNECT_WINDOW_MS`) and the ~15s missed-heartbeat detection
+  (`MISSED_HEARTBEAT_THRESHOLD * HEARTBEAT_INTERVAL_MS`) both live in `child/HeartbeatWatchdog`.
+  An explicit signal that the connection died right now (`SESSION_END` receipt, or an `IOException`
+  on the read loop, both surfaced by `child/ChildSessionChannel`) calls
+  `HeartbeatWatchdog.notifyConnectionLost()` to enter `Reconnecting` immediately rather than
+  waiting out the next 5s heartbeat-check tick — a strictly faster path to the same state the
+  missed-heartbeat check would eventually reach on its own, using a stronger signal that is
+  already available in that case.
+- **Status payload wiring (§5)**: `net/StatusPayload.kt` holds the shared
+  `STATUS_HEARTBEAT`/`STATUS_EVENT` shape. `parent/ParentStatusMonitor` only builds payloads and
+  hands them to a callback; `ScreenShareForegroundService` (edited, Tier 1 file) owns actually
+  writing the resulting frame to each connected `ParentSessionServer`, mirroring how it already
+  fans out `VIDEO_FRAME`s. `ParentSessionServer` gained a generic `sendFrame(MessageFrame)` method
+  (used by both `sendVideoFrame` and the new status push) instead of a second bespoke send method.
+- **`ChildSessionListener.Result.Failed`** (e.g. `TailscaleAddressResolver.resolve()` returns
+  `null`) is surfaced in `WaitingForParent` as a dismissible inline error + "Retry" button
+  (`session_listener_error` string, `ConnectionStateViewModel.retryWaiting()`), rather than left
+  entirely silent — this case is not explicitly specified in §4 (which only covers a mismatched
+  handshake attempt, explicitly silent), but a total listen failure (no address to bind to at all)
+  has no other path to recovery without some visible signal, unlike a single spoofed/bad attempt.

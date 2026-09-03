@@ -20,6 +20,7 @@ import androidx.core.app.NotificationCompat
 import com.familyremote.app.MainActivity
 import com.familyremote.app.R
 import com.familyremote.app.common.Constants
+import com.familyremote.app.net.StatusPayload
 import com.familyremote.app.net.VideoFrameMessage
 import com.familyremote.app.pairing.AuthorizedChild
 import com.familyremote.app.pairing.PairingRepository
@@ -50,6 +51,7 @@ class ScreenShareForegroundService : Service() {
     private lateinit var wakeLockController: ParentWakeLockController
     private lateinit var sessionStateStore: SessionStateStore
     private lateinit var keepAliveScheduler: SessionKeepAliveScheduler
+    private lateinit var statusMonitor: ParentStatusMonitor
 
     private var mediaProjection: MediaProjection? = null
     private var virtualDisplay: VirtualDisplay? = null
@@ -79,6 +81,7 @@ class ScreenShareForegroundService : Service() {
         wakeLockController = ParentWakeLockController(this)
         sessionStateStore = SessionStateStore(this)
         keepAliveScheduler = SessionKeepAliveScheduler(this)
+        statusMonitor = ParentStatusMonitor(this) { payload, isEvent -> broadcastStatus(payload, isEvent) }
         createNotificationChannel()
     }
 
@@ -149,6 +152,10 @@ class ScreenShareForegroundService : Service() {
         sessionStateStore.markActive()
         keepAliveScheduler.schedule()
         dialAuthorizedChildren()
+        // Started alongside this service per docs/plans/connection-status-and-resilience/PLAN.md
+        // §5 -- hands its payloads off to whichever ParentSessionServer instances are connected
+        // at broadcast time (mirrors broadcastVideoFrame's fan-out below).
+        statusMonitor.start(serviceScope)
     }
 
     private fun dialAuthorizedChildren() {
@@ -224,6 +231,17 @@ class ScreenShareForegroundService : Service() {
         }
     }
 
+    private fun broadcastStatus(payload: StatusPayload, isEvent: Boolean) {
+        val frame = payload.toFrame(isEvent)
+        serviceScope.launch(Dispatchers.IO) {
+            sessionServersByChild.values.toList().forEach { server ->
+                if (server.isConnected()) {
+                    server.sendFrame(frame)
+                }
+            }
+        }
+    }
+
     private fun stopSession(reason: String) {
         val serversToClose = sessionServersByChild.values.toList()
         sessionServersByChild.clear()
@@ -253,6 +271,7 @@ class ScreenShareForegroundService : Service() {
      * so it is harmless to call again after [stopSession] already released everything.
      */
     private fun releaseCaptureResources() {
+        statusMonitor.stop()
         wakeLockController.release()
         virtualDisplay?.release()
         virtualDisplay = null
