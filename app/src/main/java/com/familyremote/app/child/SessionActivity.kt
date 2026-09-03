@@ -38,6 +38,10 @@ class SessionActivity : AppCompatActivity() {
     private val inputAvailabilityViewModel = InputAvailabilityViewModel()
     private lateinit var textInputBar: TextInputBar
 
+    /** Shared by `TapInputController` and `TextInputBar`'s gating (PLAN.md §10) -- input is only
+     * allowed while the outer `ConnectionState` is `Live` *and* `inputAvailable` is true. */
+    private val isInputAllowed = { viewModel.state.value is ConnectionState.Live && inputAvailabilityViewModel.inputAvailable.value }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivitySessionBinding.inflate(layoutInflater)
@@ -84,8 +88,6 @@ class SessionActivity : AppCompatActivity() {
      * is no longer live, regardless of `inputAvailable`'s last known value.
      */
     private fun setUpInputUi() {
-        val isInputAllowed = { viewModel.state.value is ConnectionState.Live && inputAvailabilityViewModel.inputAvailable.value }
-
         val tapInputController = TapInputController(
             decoderView = binding.videoDecoderView,
             scope = lifecycleScope,
@@ -118,7 +120,7 @@ class SessionActivity : AppCompatActivity() {
 
     private fun renderInputAvailability(available: Boolean) {
         binding.viewOnlyBanner.visibility = if (available) View.GONE else View.VISIBLE
-        textInputBar.setEnabled(available)
+        textInputBar.setEnabled(isInputAllowed())
     }
 
     private fun showTextInjectFailedNotice() {
@@ -158,6 +160,12 @@ class SessionActivity : AppCompatActivity() {
             is ConnectionState.Live -> inputAvailabilityViewModel.reset()
             else -> Unit
         }
+
+        // Re-evaluate now that the outer ConnectionState may have changed -- `reset()` above only
+        // re-emits on `inputAvailable`'s own collector when its value actually changes (e.g. it
+        // stays `true` across a Live->Live no-op), which would otherwise leave `TextInputBar`
+        // stale on a Live->Reconnecting->Live cycle that never flips `inputAvailable` (PLAN.md §10).
+        textInputBar.setEnabled(isInputAllowed())
     }
 
     private fun renderListenerError(message: String?) {
