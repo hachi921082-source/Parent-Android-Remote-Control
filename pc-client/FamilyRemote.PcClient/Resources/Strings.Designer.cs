@@ -92,4 +92,51 @@ public static class Strings
 
     public static string ActionDelete =>
         ResourceManager.GetString(nameof(ActionDelete), Culture) ?? nameof(ActionDelete);
+
+    public static string ActionRetry =>
+        ResourceManager.GetString(nameof(ActionRetry), Culture) ?? nameof(ActionRetry);
+
+    // --- connection-state-ui (docs/plans/pc-client/connection-state-ui/PLAN.md §5/§6/§7) ---
+
+    public static string SessionWaitingTitle =>
+        ResourceManager.GetString(nameof(SessionWaitingTitle), Culture) ?? nameof(SessionWaitingTitle);
+
+    public static string SessionListenerError =>
+        ResourceManager.GetString(nameof(SessionListenerError), Culture) ?? nameof(SessionListenerError);
+
+    public static string SessionStatusPlaceholder =>
+        ResourceManager.GetString(nameof(SessionStatusPlaceholder), Culture) ?? nameof(SessionStatusPlaceholder);
+
+    public static string SessionStatusWifiConnected =>
+        ResourceManager.GetString(nameof(SessionStatusWifiConnected), Culture) ?? nameof(SessionStatusWifiConnected);
+
+    public static string SessionStatusWifiDisconnected =>
+        ResourceManager.GetString(nameof(SessionStatusWifiDisconnected), Culture) ?? nameof(SessionStatusWifiDisconnected);
+
+    public static string SessionStatusNetworkType =>
+        ResourceManager.GetString(nameof(SessionStatusNetworkType), Culture) ?? nameof(SessionStatusNetworkType);
+
+    public static string SessionStatusSignal =>
+        ResourceManager.GetString(nameof(SessionStatusSignal), Culture) ?? nameof(SessionStatusSignal);
+
+    public static string SessionStatusSsid =>
+        ResourceManager.GetString(nameof(SessionStatusSsid), Culture) ?? nameof(SessionStatusSsid);
+
+    public static string NetworkTypeWifi =>
+        ResourceManager.GetString(nameof(NetworkTypeWifi), Culture) ?? nameof(NetworkTypeWifi);
+
+    public static string NetworkTypeCellular =>
+        ResourceManager.GetString(nameof(NetworkTypeCellular), Culture) ?? nameof(NetworkTypeCellular);
+
+    public static string NetworkTypeNone =>
+        ResourceManager.GetString(nameof(NetworkTypeNone), Culture) ?? nameof(NetworkTypeNone);
+
+    public static string SessionReconnectingBanner =>
+        ResourceManager.GetString(nameof(SessionReconnectingBanner), Culture) ?? nameof(SessionReconnectingBanner);
+
+    public static string SessionDisconnectedTitle =>
+        ResourceManager.GetString(nameof(SessionDisconnectedTitle), Culture) ?? nameof(SessionDisconnectedTitle);
+
+    public static string SessionDisconnectedBack =>
+        ResourceManager.GetString(nameof(SessionDisconnectedBack), Culture) ?? nameof(SessionDisconnectedBack);
 }
