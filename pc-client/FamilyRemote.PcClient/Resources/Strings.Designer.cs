@@ -21,13 +21,13 @@ namespace FamilyRemote.PcClient.Resources;
 /// 中立(既定=英語)へのフォールバック）に従う。カルチャの決定自体はApp.OnStartupが
 /// 起動時に一度だけ行う（docs/plans/pc-client/app-shell/PLAN.md §5/§6）。
 /// </summary>
-internal static class Strings
+public static class Strings
 {
     private static readonly ResourceManager ResourceManager =
         new("FamilyRemote.PcClient.Resources.Strings", Assembly.GetExecutingAssembly());
 
-    internal static CultureInfo? Culture { get; set; }
+    public static CultureInfo? Culture { get; set; }
 
-    internal static string AppTitle =>
+    public static string AppTitle =>
         ResourceManager.GetString(nameof(AppTitle), Culture) ?? nameof(AppTitle);
 }
