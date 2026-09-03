@@ -11,6 +11,16 @@
   </PropertyGroup>
 
   <!--
+    ProtectedData: DPAPI (System.Security.Cryptography.ProtectedData.Protect/Unprotect) wrapper,
+    used by Pairing/PcPairingRepository.cs to encrypt pairing_entries.json at rest
+    (docs/plans/pc-client/pairing-pc-side/PLAN.md §3). Not part of the net8.0-windows base class
+    library, hence the explicit NuGet reference.
+  -->
+  <ItemGroup>
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
+  </ItemGroup>
+
+  <!--
     Strings.resx (neutral / English fallback) is backed by a hand-authored Strings.Designer.cs
     (Resources\Strings.Designer.cs) rather than Visual Studio's ResXFileCodeGenerator single-file
     generator tool, since that tool only runs inside the VS IDE and has no plain `dotnet build`
