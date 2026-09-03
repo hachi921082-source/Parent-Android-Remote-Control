@@ -5,7 +5,7 @@
     <!--
         Two-field manual pairing screen (docs/plans/pc-client/pairing-pc-side/PLAN.md §5), followed
         by an inline label-prompt step shown on handshake success (§5's "simple second TextBox
-        dialog/step" -- implemented here as a second panel within this same UserControl rather
+        dialog/step", implemented here as a second panel within this same UserControl rather
         than a separate Window; an implementation choice that section leaves open). Hosting this
         control inside MainWindow's content-switching root, and reacting to PairingCompleted by
         handing off to the WaitingForParent flow, is owned by
