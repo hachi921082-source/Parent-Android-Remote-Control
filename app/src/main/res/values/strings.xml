@@ -59,6 +59,8 @@
     <!-- Parent pairing (QR display) -->
     <string name="parent_pairing_title">Pair a new child device</string>
     <string name="parent_pairing_instructions">On the child\'s device, open the app, switch to the Child tab, and tap "Add a parent device" to scan this code.</string>
+    <string name="parent_pairing_host_address_label">Host address: %1$s</string>
+    <string name="parent_pairing_manual_code_label">Manual code: %1$s</string>
     <string name="parent_pairing_waiting">Waiting for the child device to scan this code…</string>
     <string name="parent_pairing_success">Paired successfully!</string>
     <string name="parent_pairing_tailscale_missing">Tailscale not detected on this device. Please install the Tailscale app and sign in to the family tailnet, then retry.</string>
