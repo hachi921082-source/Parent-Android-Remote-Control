@@ -14,6 +14,7 @@
 8. Text Input
 9. FLAG_SECURE Help Hint (Child-Side UI)
 10. Interactions With Other Features
+11. Implementation Notes (as-built)
 
 ## 1. Scope
 
@@ -118,3 +119,70 @@ Per detailed-spec §5: a small persistent static help hint (info icon/tooltip), 
 - **connection-status-and-resilience**: `inputAvailable` (this plan) is layered strictly within `ConnectionState.Live`/`Reconnecting` (that plan, `docs/plans/README.md` §5) — when the connection itself drops to `Disconnected`, input is moot regardless of `inputAvailable`'s last value; `TapInputController`/`TextInputBar` should also check the outer `ConnectionState` is `Live` before allowing input, not just `inputAvailable`.
 - **screen-rotation-handling**: `FrameGeometry` changes originate there; this plan only consumes them (§3/§4's recalculation triggers) — see that plan for how/when a new `VIDEO_FRAME` header with different dimensions is produced.
 - **screen-sharing-core**: `ParentAccessibilityService` binds to `ScreenShareForegroundService` (that plan) to receive inbound `INPUT_*` messages already deframed by that service's `ParentSessionServer`; this plan does not open its own separate network connection.
+
+## 11. Implementation Notes (as-built)
+
+Concrete choices made while implementing §1-§9 above, where the plan intentionally left an exact
+mechanism/file structure open:
+
+- **`AccessibilityPermissionMonitor` lives in `common`**, not `parent`, since it is called from
+  both the `pairing` package (onboarding screens) and the `parent` package (pre-flight/periodic
+  checks) — matching the package-layout note in `docs/plans/README.md` §2. It imports
+  `parent.ParentAccessibilityService` directly (for `ComponentName(context,
+  ParentAccessibilityService::class.java)`, the single canonical source of the exact component
+  name to check for); `ParentAccessibilityService` in turn calls back into
+  `AccessibilityPermissionMonitor`. This is a legitimate two-way reference between files in the
+  same Gradle module (not a build-breaking cycle — Kotlin compiles the whole module together), not
+  a layering violation to work around.
+- **Swapped Tier 0's stub in this feature's scope**, per `docs/plans/README.md` §8's
+  forward-reference note: `pairing/AccessibilityOnboardingActivity` and
+  `pairing/OnboardingWizardActivity` now call `AccessibilityPermissionMonitor.isGranted()` instead
+  of the local `AccessibilityPermissionCheck` one-liner, which is deleted. No behavior change from
+  the parent's perspective (same underlying `Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES`
+  check), just now checking for the specific `ParentAccessibilityService` component name instead of
+  "any component of this app's package."
+- **`ScreenShareForegroundService` <-> `ParentAccessibilityService` wiring**: rather than a
+  `SharedFlow`-based callback interface (the plan's other suggested option, §6), this uses direct
+  companion-object references in both directions — `ScreenShareForegroundService.Companion` holds
+  a nullable `connectedAccessibilityService` (set/cleared by `ParentAccessibilityService`'s
+  `onServiceConnected`/`onDestroy`) that inbound `INPUT_TAP`/`INPUT_SWIPE`/`INPUT_TEXT` frames are
+  routed to, and a nullable `activeInstance` (set/cleared in `ScreenShareForegroundService`'s own
+  `onCreate`/`onDestroy`) backing a `sendFrameToConnectedChildren(frame)` entry point
+  `ParentAccessibilityService` uses to relay `TEXT_INJECT_FAILED`. Chosen for consistency with the
+  existing `isRunning`/`_isRunning` companion-state pattern already in that file (screen-sharing-
+  core) rather than introducing a second, differently-shaped cross-component pattern.
+  `ScreenShareForegroundService.broadcastStatus` was refactored onto a new shared
+  `broadcastFrame(MessageFrame)` private helper, now reused by the `STATUS_HEARTBEAT`/
+  `STATUS_EVENT` push, the `ACCESSIBILITY_STATUS` ticker, and `sendFrameToConnectedChildren`.
+- **`VideoDecoderView` decodes synchronously on the caller's thread**, not via `MediaCodec`'s
+  async `Callback` API: `onVideoFrame(message)` is called directly from
+  `ChildSessionChannel`'s background read-loop coroutine (already off the main thread), and
+  `dequeueInputBuffer`/`queueInputBuffer`/`dequeueOutputBuffer`/`releaseOutputBuffer` all run there
+  too. The only Android-mandated UI-thread call, `TextureView.setTransform`, is explicitly hopped
+  to the main thread via `post {}`. This avoids running two independent threads (the read loop and
+  a codec callback thread) that would otherwise need to coordinate access to the same `MediaCodec`
+  instance.
+- **In-band SPS/PPS, no `csd-0`/`csd-1`**: the decoder's `MediaFormat` is configured with no
+  codec-specific-data keys; `ScreenCaptureEncoder` (screen-sharing-core) already forwards every
+  encoder output buffer — including the initial `BUFFER_FLAG_CODEC_CONFIG` one — through the same
+  `onNalUnit` path with no flag-based filtering, so SPS/PPS NAL units simply arrive in-band as part
+  of the ordinary Annex-B byte stream, which Android's AVC decoder accepts directly.
+- **`TapInputController` uses raw `MotionEvent` handling**, not `GestureDetector` — needed direct
+  control over swipe path sampling (every 16ms, capped at 64 points) that `GestureDetector`'s
+  callback shape doesn't cleanly expose. Tap vs. swipe is decided by displacement against
+  `ViewConfiguration.scaledTouchSlop` (the platform's own "did this drag meaningfully" threshold)
+  rather than a custom constant. For a swipe, if *any* sampled point maps outside the current
+  `RenderedContentRect`, the *entire* gesture is discarded (not just the out-of-bounds points) —
+  an implementation-level extension of Decision #11's discard-over-clamp rationale to the
+  multi-point case, since a partially-registered swipe would be just as confusing to a
+  non-tech-savvy parent as a clamped one.
+- **`TEXT_INJECT_FAILED` notice**: shown as a `Snackbar` anchored to `SessionActivity`'s root view
+  (Snackbar does not require a `CoordinatorLayout` host, just loses the swipe-to-dismiss gesture,
+  which isn't needed here since it already auto-dismisses on a timeout).
+- **FLAG_SECURE help hint** (§9): a small info-icon `ImageButton` in the live section's top-end
+  corner, tapping it shows an `AlertDialog` with the exact wording from §9's example text.
+- **`InputAvailabilityViewModel` is a separate small class**, not folded into
+  `ConnectionStateViewModel` — the plan's own §7 offered this as an option ("or a small sibling").
+  `SessionActivity` resets it (back to the default `inputAvailable = true`) on every fresh entry
+  into `ConnectionState.Live`, since a prior `inputAvailable` value belongs to a now-superseded
+  connection.
