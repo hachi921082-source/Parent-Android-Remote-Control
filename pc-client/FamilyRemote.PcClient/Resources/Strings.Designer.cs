@@ -139,4 +139,9 @@ public static class Strings
 
     public static string SessionDisconnectedBack =>
         ResourceManager.GetString(nameof(SessionDisconnectedBack), Culture) ?? nameof(SessionDisconnectedBack);
+
+    // --- video-and-session/decode (docs/plans/pc-client/video-and-session/decode.PLAN.md §9) ---
+
+    public static string VideoFlagSecureHint =>
+        ResourceManager.GetString(nameof(VideoFlagSecureHint), Culture) ?? nameof(VideoFlagSecureHint);
 }
