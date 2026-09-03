@@ -30,4 +30,9 @@ public static class Constants
     public const byte TailscaleCgnatFirstOctet = 100;
     public const byte TailscaleCgnatSecondOctetMin = 64;
     public const byte TailscaleCgnatSecondOctetMax = 127;
+
+    // --- Session (video-and-session/connectivity tier). ---
+
+    /// <summary>ライブセッションTCPポート。docs/plans/pc-client/README.md §6参照（Android側SESSION_PORTと同値）。</summary>
+    public const int SessionPort = 47321;
 }
