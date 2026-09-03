@@ -35,6 +35,9 @@
     <string name="action_retry">重试</string>
     <string name="action_done">完成</string>
 
+    <!-- Remote input control (parent-side Accessibility Service system description) -->
+    <string name="accessibility_service_description">在远程协助期间，允许已配对的子女设备在本设备上进行点按、滑动和文字输入。</string>
+
     <!-- Accessibility onboarding -->
     <string name="accessibility_onboarding_title">启用无障碍服务</string>
     <string name="accessibility_onboarding_explanation">为了让子女设备在远程协助期间可以在本设备上点按、滑动和输入文字，需要启用无障碍服务权限。此设置只需完成一次。</string>

@@ -35,6 +35,9 @@
     <string name="action_retry">Retry</string>
     <string name="action_done">Done</string>
 
+    <!-- Remote input control (parent-side Accessibility Service system description) -->
+    <string name="accessibility_service_description">Lets a paired child device tap, swipe, and type on this device during a remote support session.</string>
+
     <!-- Accessibility onboarding -->
     <string name="accessibility_onboarding_title">Enable Accessibility Service</string>
     <string name="accessibility_onboarding_explanation">To let the child device tap, swipe, and type on this device during a remote support session, this device needs the Accessibility Service permission enabled. This is a one-time setting.</string>

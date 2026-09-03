@@ -35,6 +35,9 @@
     <string name="action_retry">再試行</string>
     <string name="action_done">完了</string>
 
+    <!-- Remote input control (parent-side Accessibility Service system description) -->
+    <string name="accessibility_service_description">リモートサポート中に、ペアリングした子デバイスがこの端末をタップ・スワイプ・文字入力できるようにします。</string>
+
     <!-- Accessibility onboarding -->
     <string name="accessibility_onboarding_title">ユーザー補助サービスを有効にする</string>
     <string name="accessibility_onboarding_explanation">リモートサポート中に子デバイスからこの端末をタップ・スワイプ・文字入力できるようにするため、ユーザー補助サービスの許可が必要です。設定は最初の一回だけで大丈夫です。</string>
