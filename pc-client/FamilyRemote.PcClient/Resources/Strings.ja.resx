@@ -180,4 +180,49 @@
   <data name="ActionDelete" xml:space="preserve">
     <value>削除</value>
   </data>
+  <data name="ActionRetry" xml:space="preserve">
+    <value>再試行</value>
+  </data>
+  <data name="SessionWaitingTitle" xml:space="preserve">
+    <value>{0}が共有を開始するのを待っています…</value>
+  </data>
+  <data name="SessionListenerError" xml:space="preserve">
+    <value>親デバイスからの接続待ち受けを開始できませんでした。Tailscaleの接続状態を確認し、もう一度お試しください。</value>
+  </data>
+  <data name="SessionStatusPlaceholder" xml:space="preserve">
+    <value>接続済み。状態情報を待っています…</value>
+  </data>
+  <data name="SessionStatusWifiConnected" xml:space="preserve">
+    <value>Wi-Fi: 接続中</value>
+  </data>
+  <data name="SessionStatusWifiDisconnected" xml:space="preserve">
+    <value>Wi-Fi: 未接続</value>
+  </data>
+  <data name="SessionStatusNetworkType" xml:space="preserve">
+    <value>ネットワーク: {0}</value>
+  </data>
+  <data name="SessionStatusSignal" xml:space="preserve">
+    <value>電波強度: {0} dBm</value>
+  </data>
+  <data name="SessionStatusSsid" xml:space="preserve">
+    <value>ネットワーク名: {0}</value>
+  </data>
+  <data name="NetworkTypeWifi" xml:space="preserve">
+    <value>Wi-Fi</value>
+  </data>
+  <data name="NetworkTypeCellular" xml:space="preserve">
+    <value>モバイルデータ</value>
+  </data>
+  <data name="NetworkTypeNone" xml:space="preserve">
+    <value>接続なし</value>
+  </data>
+  <data name="SessionReconnectingBanner" xml:space="preserve">
+    <value>再接続中…</value>
+  </data>
+  <data name="SessionDisconnectedTitle" xml:space="preserve">
+    <value>{0}との接続が切れました。この状態が続く場合は、もう一度共有を開始してもらってください。</value>
+  </data>
+  <data name="SessionDisconnectedBack" xml:space="preserve">
+    <value>ペアリング一覧に戻る</value>
+  </data>
 </root>
