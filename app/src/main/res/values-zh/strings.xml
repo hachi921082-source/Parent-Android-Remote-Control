@@ -97,4 +97,13 @@
     <string name="network_type_wifi">Wi-Fi</string>
     <string name="network_type_cellular">移动数据</string>
     <string name="network_type_none">无连接</string>
+
+    <!-- Remote input control (child-side viewer/input UI) -->
+    <string name="session_view_only_banner">当前无法操作，请让对方检查无障碍服务设置。</string>
+    <string name="session_text_inject_failed_notice">对方屏幕上当前没有可输入文字的位置。</string>
+    <string name="session_text_input_hint">输入消息…</string>
+    <string name="session_text_input_send">发送</string>
+    <string name="session_help_hint_desc">屏幕为什么会变黑？</string>
+    <string name="session_help_hint_title">屏幕是黑的吗？</string>
+    <string name="session_help_hint_message">如果对方设备上打开了银行、密码管理器等受保护的应用，屏幕可能会显示为黑屏，这不一定代表连接出现了问题。</string>
 </resources>

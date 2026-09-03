@@ -4,14 +4,19 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.familyremote.app.R
 import com.familyremote.app.common.ConnectionState
 import com.familyremote.app.databinding.ActivitySessionBinding
+import com.familyremote.app.net.MessageFrame
+import com.familyremote.app.net.MessageType
 import com.familyremote.app.net.StatusPayload
+import com.familyremote.app.net.VideoFrameMessage
 import com.familyremote.app.pairing.PairingEntry
 import com.familyremote.app.pairing.PairingRepository
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 import java.util.UUID
 
@@ -29,6 +34,9 @@ class SessionActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySessionBinding
     private lateinit var viewModel: ConnectionStateViewModel
     private lateinit var pairing: PairingEntry
+
+    private val inputAvailabilityViewModel = InputAvailabilityViewModel()
+    private lateinit var textInputBar: TextInputBar
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,6 +57,7 @@ class SessionActivity : AppCompatActivity() {
         pairing = resolvedPairing
 
         viewModel = ConnectionStateViewModel(lifecycleScope)
+        viewModel.onOtherMessage = { frame -> handleOtherMessage(frame) }
 
         binding.waitingCancelButton.setOnClickListener {
             viewModel.cancelWaiting()
@@ -57,11 +66,71 @@ class SessionActivity : AppCompatActivity() {
         binding.retryButton.setOnClickListener { viewModel.retryWaiting() }
         binding.disconnectedBackButton.setOnClickListener { finish() }
 
+        setUpInputUi()
+
         lifecycleScope.launch { viewModel.state.collect { renderState(it) } }
         lifecycleScope.launch { viewModel.latestStatus.collect { renderStatus(it) } }
         lifecycleScope.launch { viewModel.listenerError.collect { renderListenerError(it) } }
+        lifecycleScope.launch { inputAvailabilityViewModel.inputAvailable.collect { renderInputAvailability(it) } }
+        lifecycleScope.launch { inputAvailabilityViewModel.textInjectFailed.collect { showTextInjectFailedNotice() } }
 
         viewModel.startWaiting(pairing)
+    }
+
+    /**
+     * Wires the tap/swipe/text input UI, per docs/plans/remote-input-control/PLAN.md §5/§8/§9.
+     * `TapInputController`/`TextInputBar` both gate on the outer `ConnectionState` being `Live`
+     * (not just `inputAvailable`, PLAN.md §10) -- neither can function once the connection itself
+     * is no longer live, regardless of `inputAvailable`'s last known value.
+     */
+    private fun setUpInputUi() {
+        val isInputAllowed = { viewModel.state.value is ConnectionState.Live && inputAvailabilityViewModel.inputAvailable.value }
+
+        val tapInputController = TapInputController(
+            decoderView = binding.videoDecoderView,
+            scope = lifecycleScope,
+            isInputAllowed = isInputAllowed,
+            sendFrame = { frame -> viewModel.sendFrame(frame) },
+            onValidGesture = { points -> binding.tapMarkerOverlay.showMarker(points) }
+        )
+        binding.videoDecoderView.setOnTouchListener(tapInputController)
+
+        textInputBar = TextInputBar(
+            editText = binding.textInputEditText,
+            sendButton = binding.textInputSendButton,
+            scope = lifecycleScope,
+            sendFrame = { frame -> viewModel.sendFrame(frame) }
+        )
+
+        binding.flagSecureHelpButton.setOnClickListener { showFlagSecureHelpDialog() }
+    }
+
+    /** Dispatches frame types `ConnectionStateViewModel` doesn't itself parse -- `VIDEO_FRAME`
+     * (rendering) and `ACCESSIBILITY_STATUS`/`TEXT_INJECT_FAILED` (view-only mode, PLAN.md §7/§8).
+     * Called from the session-channel read loop's background thread. */
+    private fun handleOtherMessage(frame: MessageFrame) {
+        when (frame.type) {
+            MessageType.VIDEO_FRAME -> binding.videoDecoderView.onVideoFrame(VideoFrameMessage.parse(frame))
+            MessageType.ACCESSIBILITY_STATUS, MessageType.TEXT_INJECT_FAILED -> inputAvailabilityViewModel.onFrame(frame)
+            else -> Unit
+        }
+    }
+
+    private fun renderInputAvailability(available: Boolean) {
+        binding.viewOnlyBanner.visibility = if (available) View.GONE else View.VISIBLE
+        textInputBar.setEnabled(available)
+    }
+
+    private fun showTextInjectFailedNotice() {
+        Snackbar.make(binding.root, R.string.session_text_inject_failed_notice, Snackbar.LENGTH_SHORT).show()
+    }
+
+    private fun showFlagSecureHelpDialog() {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.session_help_hint_title)
+            .setMessage(R.string.session_help_hint_message)
+            .setPositiveButton(R.string.action_ok, null)
+            .show()
     }
 
     override fun onDestroy() {
@@ -69,6 +138,7 @@ class SessionActivity : AppCompatActivity() {
         // lifecycleScope cancellation alone does not unblock an in-progress blocking
         // accept()/read() call, so resources are closed explicitly here.
         viewModel.release()
+        binding.videoDecoderView.release()
     }
 
     private fun renderState(state: ConnectionState) {
@@ -83,6 +153,9 @@ class SessionActivity : AppCompatActivity() {
                 binding.waitingText.text = getString(R.string.session_waiting_title, state.pairing.label)
             is ConnectionState.Disconnected ->
                 binding.disconnectedText.text = getString(R.string.session_disconnected_title, state.pairing.label)
+            // Fresh Live entry (initial connect, or reconnect-then-live) -- the previous
+            // inputAvailable value belonged to a now-superseded connection (PLAN.md §7).
+            is ConnectionState.Live -> inputAvailabilityViewModel.reset()
             else -> Unit
         }
     }

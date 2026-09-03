@@ -4,12 +4,12 @@
     docs/plans/connection-status-and-resilience/PLAN.md §3/§4/§6: WaitingForParent / Live /
     Reconnecting / Disconnected all live in this one Activity (visibility-toggled sections) rather
     than separate Activities, since a live socket connection must not be dropped by an Activity
-    transition. The `liveContentContainer` is a placeholder for remote-input-control's video
-    surface (docs/plans/remote-input-control/PLAN.md), not yet built; this plan only owns the
-    connection-status display shown here.
+    transition. `liveContentContainer` now hosts remote-input-control's video surface and input
+    UI (docs/plans/remote-input-control/PLAN.md §3/§5/§8/§9).
 -->
 
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@android:color/black">
@@ -69,37 +69,109 @@
         android:layout_height="match_parent"
         android:visibility="gone">
 
-        <!-- Placeholder for remote-input-control's VideoDecoderView (not yet built); this plan
-             only owns the connection-status text shown here. -->
-        <LinearLayout
+        <!-- Video surface + tap/swipe input, per docs/plans/remote-input-control/PLAN.md §3/§5. -->
+        <FrameLayout
             android:id="@+id/liveContentContainer"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:padding="24dp">
+            android:layout_height="match_parent">
 
-            <TextView
-                android:id="@+id/liveStatusText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:textColor="@android:color/white"
-                android:textSize="16sp" />
+            <com.familyremote.app.child.VideoDecoderView
+                android:id="@+id/videoDecoderView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
 
-        </LinearLayout>
+            <!-- Never intercepts touches: see TapMarkerOverlay's own doc comment. -->
+            <com.familyremote.app.child.TapMarkerOverlay
+                android:id="@+id/tapMarkerOverlay"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
 
-        <TextView
-            android:id="@+id/reconnectingBanner"
+        </FrameLayout>
+
+        <!-- Status/connection-loss banners, stacked at the top (§6/§7). -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="top"
-            android:background="#CC000000"
-            android:gravity="center"
-            android:padding="12dp"
-            android:text="@string/session_reconnecting_banner"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/reconnectingBanner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#CC000000"
+                android:gravity="center"
+                android:padding="12dp"
+                android:text="@string/session_reconnecting_banner"
+                android:textColor="@android:color/white"
+                android:visibility="gone" />
+
+            <!-- View-only mode banner, per PLAN.md §7 / detailed-spec §11. -->
+            <TextView
+                android:id="@+id/viewOnlyBanner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#CC000000"
+                android:gravity="center"
+                android:padding="12dp"
+                android:text="@string/session_view_only_banner"
+                android:textColor="@android:color/white"
+                android:visibility="gone" />
+
+        </LinearLayout>
+
+        <!-- Parent device status summary, small overlay corner (§9). -->
+        <TextView
+            android:id="@+id/liveStatusText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|start"
+            android:layout_margin="8dp"
+            android:background="#99000000"
+            android:padding="8dp"
             android:textColor="@android:color/white"
-            android:visibility="gone" />
+            android:textSize="12sp" />
+
+        <!-- FLAG_SECURE help hint, per PLAN.md §9 / detailed-spec §5. -->
+        <ImageButton
+            android:id="@+id/flagSecureHelpButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|end"
+            android:layout_margin="8dp"
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/session_help_hint_desc"
+            android:padding="8dp"
+            android:src="@android:drawable/ic_dialog_info"
+            app:tint="@android:color/white" />
+
+        <!-- Text input bar, per PLAN.md §8 / detailed-spec §16. -->
+        <LinearLayout
+            android:id="@+id/textInputContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:background="#CC000000"
+            android:orientation="horizontal"
+            android:padding="8dp">
+
+            <EditText
+                android:id="@+id/textInputEditText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="@string/session_text_input_hint"
+                android:inputType="text"
+                android:textColor="@android:color/white"
+                android:textColorHint="#AAFFFFFF" />
+
+            <Button
+                android:id="@+id/textInputSendButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/session_text_input_send" />
+
+        </LinearLayout>
 
     </FrameLayout>
 

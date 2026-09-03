@@ -97,4 +97,13 @@
     <string name="network_type_wifi">Wi-Fi</string>
     <string name="network_type_cellular">モバイルデータ</string>
     <string name="network_type_none">接続なし</string>
+
+    <!-- Remote input control (child-side viewer/input UI) -->
+    <string name="session_view_only_banner">現在、操作はできません。ユーザー補助サービスの設定を確認するよう伝えてください。</string>
+    <string name="session_text_inject_failed_notice">相手の画面に文字入力できる項目がありません。</string>
+    <string name="session_text_input_hint">メッセージを入力…</string>
+    <string name="session_text_input_send">送信</string>
+    <string name="session_help_hint_desc">画面が真っ黒な理由について</string>
+    <string name="session_help_hint_title">画面が真っ黒ですか？</string>
+    <string name="session_help_hint_message">銀行アプリやパスワード管理アプリなど、保護されたアプリが相手の端末で開かれている場合、画面が真っ黒に表示されることがあります。必ずしも接続の問題とは限りません。</string>
 </resources>

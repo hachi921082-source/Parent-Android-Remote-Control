@@ -97,4 +97,13 @@
     <string name="network_type_wifi">Wi-Fi</string>
     <string name="network_type_cellular">Mobile data</string>
     <string name="network_type_none">No connection</string>
+
+    <!-- Remote input control (child-side viewer/input UI) -->
+    <string name="session_view_only_banner">Input unavailable right now — ask them to check the Accessibility Service setting.</string>
+    <string name="session_text_inject_failed_notice">No active text field on their screen right now.</string>
+    <string name="session_text_input_hint">Type a message…</string>
+    <string name="session_text_input_send">Send</string>
+    <string name="session_help_hint_desc">Why might the screen be black?</string>
+    <string name="session_help_hint_title">Black screen?</string>
+    <string name="session_help_hint_message">A black screen may mean a protected app (like banking or a password manager) is open on their device — this isn\'t necessarily a connection problem.</string>
 </resources>
