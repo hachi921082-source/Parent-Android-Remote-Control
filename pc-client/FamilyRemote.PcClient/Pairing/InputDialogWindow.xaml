@@ -1,0 +1,22 @@
+<Window x:Class="FamilyRemote.PcClient.Pairing.InputDialogWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:res="clr-namespace:FamilyRemote.PcClient.Resources"
+        Width="360" SizeToContent="Height"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize" ShowInTaskbar="False">
+    <!--
+        Small reusable single-line text prompt (title + textbox + OK/Cancel), used by
+        PairingListView for the rename affordance (docs/plans/pc-client/pairing-pc-side/PLAN.md
+        §7). Title text is set from code-behind (per-use-site string), not hardcoded here.
+    -->
+    <StackPanel Margin="16">
+        <TextBox x:Name="ValueTextBox" Margin="0,0,0,16" />
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button x:Name="CancelButton" Content="{x:Static res:Strings.ActionCancel}"
+                    Padding="12,4" Margin="0,0,8,0" IsCancel="True" Click="OnCancelClick" />
+            <Button x:Name="OkButton" Content="{x:Static res:Strings.ActionOk}"
+                    Padding="12,4" IsDefault="True" Click="OnOkClick" />
+        </StackPanel>
+    </StackPanel>
+</Window>

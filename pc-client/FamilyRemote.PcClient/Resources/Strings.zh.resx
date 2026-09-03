@@ -120,4 +120,64 @@
   <data name="AppTitle" xml:space="preserve">
     <value>家庭远程助手</value>
   </data>
+  <data name="ManualPairingHostLabel" xml:space="preserve">
+    <value>主机地址</value>
+  </data>
+  <data name="ManualPairingCodeLabel" xml:space="preserve">
+    <value>配对代码</value>
+  </data>
+  <data name="ManualPairingButton" xml:space="preserve">
+    <value>配对</value>
+  </data>
+  <data name="ManualPairingConnecting" xml:space="preserve">
+    <value>正在连接…</value>
+  </data>
+  <data name="ManualPairingErrorGeneric" xml:space="preserve">
+    <value>无法配对。请检查主机地址和代码后重试。</value>
+  </data>
+  <data name="ManualPairingTailscaleMissing" xml:space="preserve">
+    <value>未在此电脑上检测到Tailscale。请先安装Tailscale并登录。</value>
+  </data>
+  <data name="LabelPromptTitle" xml:space="preserve">
+    <value>为此设备命名</value>
+  </data>
+  <data name="LabelPromptDefault" xml:space="preserve">
+    <value>家长</value>
+  </data>
+  <data name="LabelPromptSaveButton" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="PairingListTitle" xml:space="preserve">
+    <value>已配对设备</value>
+  </data>
+  <data name="PairingListEmpty" xml:space="preserve">
+    <value>暂无已配对设备。</value>
+  </data>
+  <data name="PairingListAddNew" xml:space="preserve">
+    <value>添加新配对</value>
+  </data>
+  <data name="PairingListRename" xml:space="preserve">
+    <value>重命名</value>
+  </data>
+  <data name="PairingListDelete" xml:space="preserve">
+    <value>删除</value>
+  </data>
+  <data name="PairingRenameDialogTitle" xml:space="preserve">
+    <value>重命名设备</value>
+  </data>
+  <data name="PairingDeleteDialogTitle" xml:space="preserve">
+    <value>删除配对</value>
+  </data>
+  <data name="PairingDeleteDialogMessage" xml:space="preserve">
+    <value>要移除此已配对设备吗？之后仍可重新配对。</value>
+  </data>
+  <data name="ActionOk" xml:space="preserve">
+    <value>确定</value>
+  </data>
+  <data name="ActionCancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="ActionDelete" xml:space="preserve">
+    <value>删除</value>
+  </data>
 </root>

@@ -30,4 +30,66 @@ public static class Strings
 
     public static string AppTitle =>
         ResourceManager.GetString(nameof(AppTitle), Culture) ?? nameof(AppTitle);
+
+    // --- pairing-pc-side (docs/plans/pc-client/pairing-pc-side/PLAN.md §5/§7) ---
+
+    public static string ManualPairingHostLabel =>
+        ResourceManager.GetString(nameof(ManualPairingHostLabel), Culture) ?? nameof(ManualPairingHostLabel);
+
+    public static string ManualPairingCodeLabel =>
+        ResourceManager.GetString(nameof(ManualPairingCodeLabel), Culture) ?? nameof(ManualPairingCodeLabel);
+
+    public static string ManualPairingButton =>
+        ResourceManager.GetString(nameof(ManualPairingButton), Culture) ?? nameof(ManualPairingButton);
+
+    public static string ManualPairingConnecting =>
+        ResourceManager.GetString(nameof(ManualPairingConnecting), Culture) ?? nameof(ManualPairingConnecting);
+
+    public static string ManualPairingErrorGeneric =>
+        ResourceManager.GetString(nameof(ManualPairingErrorGeneric), Culture) ?? nameof(ManualPairingErrorGeneric);
+
+    public static string ManualPairingTailscaleMissing =>
+        ResourceManager.GetString(nameof(ManualPairingTailscaleMissing), Culture) ?? nameof(ManualPairingTailscaleMissing);
+
+    public static string LabelPromptTitle =>
+        ResourceManager.GetString(nameof(LabelPromptTitle), Culture) ?? nameof(LabelPromptTitle);
+
+    public static string LabelPromptDefault =>
+        ResourceManager.GetString(nameof(LabelPromptDefault), Culture) ?? nameof(LabelPromptDefault);
+
+    public static string LabelPromptSaveButton =>
+        ResourceManager.GetString(nameof(LabelPromptSaveButton), Culture) ?? nameof(LabelPromptSaveButton);
+
+    public static string PairingListTitle =>
+        ResourceManager.GetString(nameof(PairingListTitle), Culture) ?? nameof(PairingListTitle);
+
+    public static string PairingListEmpty =>
+        ResourceManager.GetString(nameof(PairingListEmpty), Culture) ?? nameof(PairingListEmpty);
+
+    public static string PairingListAddNew =>
+        ResourceManager.GetString(nameof(PairingListAddNew), Culture) ?? nameof(PairingListAddNew);
+
+    public static string PairingListRename =>
+        ResourceManager.GetString(nameof(PairingListRename), Culture) ?? nameof(PairingListRename);
+
+    public static string PairingListDelete =>
+        ResourceManager.GetString(nameof(PairingListDelete), Culture) ?? nameof(PairingListDelete);
+
+    public static string PairingRenameDialogTitle =>
+        ResourceManager.GetString(nameof(PairingRenameDialogTitle), Culture) ?? nameof(PairingRenameDialogTitle);
+
+    public static string PairingDeleteDialogTitle =>
+        ResourceManager.GetString(nameof(PairingDeleteDialogTitle), Culture) ?? nameof(PairingDeleteDialogTitle);
+
+    public static string PairingDeleteDialogMessage =>
+        ResourceManager.GetString(nameof(PairingDeleteDialogMessage), Culture) ?? nameof(PairingDeleteDialogMessage);
+
+    public static string ActionOk =>
+        ResourceManager.GetString(nameof(ActionOk), Culture) ?? nameof(ActionOk);
+
+    public static string ActionCancel =>
+        ResourceManager.GetString(nameof(ActionCancel), Culture) ?? nameof(ActionCancel);
+
+    public static string ActionDelete =>
+        ResourceManager.GetString(nameof(ActionDelete), Culture) ?? nameof(ActionDelete);
 }

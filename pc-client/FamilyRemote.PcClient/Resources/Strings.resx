@@ -120,4 +120,64 @@
   <data name="AppTitle" xml:space="preserve">
     <value>Family Remote</value>
   </data>
+  <data name="ManualPairingHostLabel" xml:space="preserve">
+    <value>Host address</value>
+  </data>
+  <data name="ManualPairingCodeLabel" xml:space="preserve">
+    <value>Pairing code</value>
+  </data>
+  <data name="ManualPairingButton" xml:space="preserve">
+    <value>Pair</value>
+  </data>
+  <data name="ManualPairingConnecting" xml:space="preserve">
+    <value>Connecting…</value>
+  </data>
+  <data name="ManualPairingErrorGeneric" xml:space="preserve">
+    <value>Could not pair. Check the host address and code, then try again.</value>
+  </data>
+  <data name="ManualPairingTailscaleMissing" xml:space="preserve">
+    <value>Tailscale was not detected on this PC. Install Tailscale and sign in first.</value>
+  </data>
+  <data name="LabelPromptTitle" xml:space="preserve">
+    <value>Name this device</value>
+  </data>
+  <data name="LabelPromptDefault" xml:space="preserve">
+    <value>Parent</value>
+  </data>
+  <data name="LabelPromptSaveButton" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="PairingListTitle" xml:space="preserve">
+    <value>Paired devices</value>
+  </data>
+  <data name="PairingListEmpty" xml:space="preserve">
+    <value>No paired devices yet.</value>
+  </data>
+  <data name="PairingListAddNew" xml:space="preserve">
+    <value>Add new pairing</value>
+  </data>
+  <data name="PairingListRename" xml:space="preserve">
+    <value>Rename</value>
+  </data>
+  <data name="PairingListDelete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="PairingRenameDialogTitle" xml:space="preserve">
+    <value>Rename device</value>
+  </data>
+  <data name="PairingDeleteDialogTitle" xml:space="preserve">
+    <value>Delete pairing</value>
+  </data>
+  <data name="PairingDeleteDialogMessage" xml:space="preserve">
+    <value>Remove this paired device? You can pair again later.</value>
+  </data>
+  <data name="ActionOk" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="ActionCancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="ActionDelete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
 </root>

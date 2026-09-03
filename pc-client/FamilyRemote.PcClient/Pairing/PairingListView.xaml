@@ -1,0 +1,46 @@
+<UserControl x:Class="FamilyRemote.PcClient.Pairing.PairingListView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:res="clr-namespace:FamilyRemote.PcClient.Resources">
+    <!--
+        Pairing management screen (docs/plans/pc-client/pairing-pc-side/PLAN.md §7): lists existing
+        PcPairingEntry rows with rename/delete affordances, plus "Add new pairing". Row selection
+        raises PairingEntrySelected purely as a forward-compatible hook for
+        docs/plans/pc-client/connection-state-ui/PLAN.md (which owns the actual connect/navigation
+        flow); this control never starts a session or switches screens itself.
+    -->
+    <DockPanel Margin="24">
+        <TextBlock DockPanel.Dock="Top" Text="{x:Static res:Strings.PairingListTitle}"
+                   FontWeight="Bold" FontSize="16" Margin="0,0,0,12" />
+
+        <Button DockPanel.Dock="Bottom" x:Name="AddNewButton" HorizontalAlignment="Left"
+                Content="{x:Static res:Strings.PairingListAddNew}" Padding="16,4" Margin="0,12,0,0"
+                Click="OnAddNewClick" />
+
+        <TextBlock x:Name="EmptyText" DockPanel.Dock="Top"
+                   Text="{x:Static res:Strings.PairingListEmpty}" Visibility="Collapsed" />
+
+        <ListBox x:Name="EntryList" BorderThickness="0" Background="Transparent"
+                 SelectionChanged="OnSelectionChanged">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Grid Margin="0,4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="{Binding Label}" FontWeight="SemiBold" />
+                            <TextBlock Text="{Binding ParentHost}" Opacity="0.7" FontSize="11" />
+                        </StackPanel>
+                        <Button Grid.Column="1" Content="{x:Static res:Strings.PairingListRename}"
+                                Padding="8,2" Margin="8,0,0,0" Click="OnRenameClick" Tag="{Binding}" />
+                        <Button Grid.Column="2" Content="{x:Static res:Strings.PairingListDelete}"
+                                Padding="8,2" Margin="8,0,0,0" Click="OnDeleteClick" Tag="{Binding}" />
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </DockPanel>
+</UserControl>
