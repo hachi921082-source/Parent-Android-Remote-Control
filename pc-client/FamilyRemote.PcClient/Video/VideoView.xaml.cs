@@ -33,6 +33,31 @@ public partial class VideoView : UserControl
     }
 
     /// <summary>
+    /// 現在実際にvideoが描画されている矩形（コントロールローカルpx）-- ズーム未適用時は
+    /// <see cref="Video.LetterboxLayoutCalculator"/>がそのまま返す素のレターボックス/ピラーボックス矩形、
+    /// <see cref="ContentRectOverride"/>が設定されていればその戻り値。decode.PLAN.md §7 /
+    /// zoom-magnifier PLAN.md §5 / input-relay PLAN.md §3が前提とする「両tierが購読する単一の
+    /// current content rect observable」はこのプロパティ+<see cref="ContentRectChanged"/>がそれに当たる
+    /// -- 幾何値がまだ届いていない（最初のVIDEO_FRAME受信前）場合はnull。
+    /// </summary>
+    public RenderedContentRect? CurrentContentRect { get; private set; }
+
+    /// <summary>
+    /// <see cref="CurrentContentRect"/>が変化するたびに発火する。常にUIスレッド上で呼ばれる
+    /// （<see cref="RecomputeContentRect"/>自体がUIスレッド上でのみ呼ばれるため）。
+    /// </summary>
+    public event Action<RenderedContentRect>? ContentRectChanged;
+
+    /// <summary>
+    /// 素のレターボックス矩形をズーム後の矩形へ差し替えるためのフック(zoom-magnifier tier用)。
+    /// 非nullなら<see cref="Video.LetterboxLayoutCalculator.ComputeContentRect"/>の結果と現在の
+    /// <see cref="FrameGeometry"/>を渡し、その戻り値を実際の描画/<see cref="CurrentContentRect"/>として
+    /// 使う。未設定（既定null）の間は素のレターボックス矩形がそのまま使われ、input-relay
+    /// tierが先にzoom-magnifierを待たず単独で実装・動作できる（zoom未実装の間は恒等変換と同義）。
+    /// </summary>
+    public Func<RenderedContentRect, FrameGeometry, RenderedContentRect>? ContentRectOverride { get; set; }
+
+    /// <summary>
     /// このVideoViewが描画対象とするデコーダを結びつける。LiveView.xaml.csのコンストラクタから、
     /// 生成直後に一度だけ呼ばれる想定（<c>ConnectionStateStore.Decoder</c>は新規Live突入時点で
     /// 既に非null -- decode.PLAN.md §4 step 1）。
@@ -121,9 +146,14 @@ public partial class VideoView : UserControl
             return;
         }
 
-        RenderedContentRect rect = LetterboxLayoutCalculator.ComputeContentRect(ActualWidth, ActualHeight, geometry);
+        RenderedContentRect baseRect = LetterboxLayoutCalculator.ComputeContentRect(ActualWidth, ActualHeight, geometry);
+        RenderedContentRect rect = ContentRectOverride?.Invoke(baseRect, geometry) ?? baseRect;
+
         FrameImage.Margin = new Thickness(rect.Left, rect.Top, 0, 0);
         FrameImage.Width = rect.Width;
         FrameImage.Height = rect.Height;
+
+        CurrentContentRect = rect;
+        ContentRectChanged?.Invoke(rect);
     }
 }
