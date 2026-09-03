@@ -35,9 +35,11 @@
                             <TextBlock Text="{Binding ParentHost}" Opacity="0.7" FontSize="11" />
                         </StackPanel>
                         <Button Grid.Column="1" Content="{x:Static res:Strings.PairingListRename}"
-                                Padding="8,2" Margin="8,0,0,0" Click="OnRenameClick" Tag="{Binding}" />
+                                Padding="8,2" Margin="8,0,0,0" Click="OnRenameClick" Tag="{Binding}"
+                                PreviewMouseLeftButtonDown="OnRowActionButtonPreviewMouseDown" />
                         <Button Grid.Column="2" Content="{x:Static res:Strings.PairingListDelete}"
-                                Padding="8,2" Margin="8,0,0,0" Click="OnDeleteClick" Tag="{Binding}" />
+                                Padding="8,2" Margin="8,0,0,0" Click="OnDeleteClick" Tag="{Binding}"
+                                PreviewMouseLeftButtonDown="OnRowActionButtonPreviewMouseDown" />
                     </Grid>
                 </DataTemplate>
             </ListBox.ItemTemplate>
