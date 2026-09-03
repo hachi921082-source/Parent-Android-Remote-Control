@@ -10,6 +10,7 @@
 4. Child Side: Render/Coordinate Recalculation
 5. Continuity Requirements
 6. Interactions With Other Features
+7. Implementation Notes (as-built)
 
 ## 1. Scope
 
@@ -42,3 +43,49 @@ Per detailed-spec §12: no interruption to the underlying session/connection. Co
 
 - **screen-sharing-core**: owns `ScreenShareForegroundService`/`MediaProjection`/encoder that this plan's §2 reconfigures in place — implemented as an addition to that service, not a separate component/service.
 - **remote-input-control**: owns the actual letterbox/coordinate-scaling math this plan's §4 re-triggers — see that plan's §3/§4 for the formulas; this plan does not redefine them.
+
+## 7. Implementation Notes (as-built)
+
+Concrete choices made while implementing §1-§6 above, where the plan intentionally left an exact
+mechanism/file structure open, plus one correction to a literal reading of §2:
+
+- **§2's API-tier split was read as: "how the `VirtualDisplay` itself picks up the new frame size"
+  differs by API level, not "whether the encoder gets reconfigured."** A literal reading of §2's
+  bullet nesting (the encoder-recreation sentence appears only under the API 26-30 bullet) could be
+  taken to mean the API 31+ path leaves the encoder untouched and only calls
+  `VirtualDisplay.resize()`. That would not actually work: `VirtualDisplay.resize()` changes the
+  display's logical size, but the `MediaCodec` encoder attached to it was still configured (via
+  `createInputSurface()`) for the *old* width/height, so its encoded output — and therefore the
+  `VIDEO_FRAME` header dimensions the child relies on to detect the change at all (§3) — would
+  never actually change; only the display's rendering into the still-fixed-size surface would
+  distort. `ScreenShareForegroundService.reconfigureCaptureForDisplayChange()` therefore always
+  creates a fresh `ScreenCaptureEncoder`/`MediaCodec` for the new dimensions on every API level (as
+  §2's API 26-30 bullet already allowed, "a fresh instance is simpler to reason about"), and the two
+  tiers differ only in how the existing `VirtualDisplay` is handed the new encoder's input surface:
+  API 31+ calls `VirtualDisplay.resize(newWidth, newHeight, dpi)` followed by
+  `VirtualDisplay.setSurface(newSurface)` (both in-place operations on the same `VirtualDisplay`
+  object/`MediaProjection` grant — still no new capture session, matching §2's "internal adjustment"
+  framing); API 26-30 releases and recreates the `VirtualDisplay` as §2 already specified. The new
+  encoder is started and handed to the display before the old encoder is stopped, to keep the
+  capture gap as short as possible per §5's continuity requirement.
+- **Rotation detection**: `DisplayManager.DisplayListener.onDisplayChanged`, registered/unregistered
+  alongside capture start/stop (`startCaptureSession`/`releaseCaptureResources`), filtered to
+  `Display.DEFAULT_DISPLAY` only — the listener also fires for the service's own `VirtualDisplay`
+  (e.g. as a side effect of the reconfiguration itself), which must not be treated as a fresh
+  rotation to react to again. Dimension comparison uses `Display.getRealMetrics()` (width, height,
+  and `densityDpi` in one call) against the currently configured `captureWidth`/`captureHeight`.
+- **Failure handling**: `reconfigureCaptureForDisplayChange` wraps the reconfigure in a `try/catch`
+  and leaves whatever capture pipeline was already running in place on failure (matching
+  `VideoDecoderView`'s existing decoder-reconfigure-failure pattern on the child side) — rather than
+  tearing down an otherwise-working session over a failed rotation reconfigure. Not specifically
+  covered by §2/§5, but consistent with their "no interruption to the underlying session" intent.
+- **Child side required no new code**, confirming §4's own framing ("this plan does not duplicate
+  that logic, only confirms a parent-side rotation is one of the two trigger conditions"):
+  `VideoDecoderView` (docs/plans/remote-input-control/PLAN.md, already merged) already compares
+  every incoming `VIDEO_FRAME` header against its current `FrameGeometry` and recomputes
+  `RenderedContentRect` on a change. `child/SessionActivity`'s `android:configChanges` (set by
+  connection-status-and-resilience, see that plan's §9) was previously commented as an "interim
+  measure pending" this plan; that comment has been updated (`AndroidManifest.xml`,
+  `SessionActivity.kt`, and that plan's own §9) to record this as the final design instead, since
+  `onSizeChanged` still fires normally under `configChanges` (only Activity recreation is
+  suppressed, not layout).
