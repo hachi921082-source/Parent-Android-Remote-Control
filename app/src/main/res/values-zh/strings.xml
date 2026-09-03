@@ -59,6 +59,8 @@
     <!-- Parent pairing (QR display) -->
     <string name="parent_pairing_title">配对新的子女设备</string>
     <string name="parent_pairing_instructions">请在子女的设备上打开本应用，切换到“子女”标签页，点击“添加家长设备”，然后扫描此二维码。</string>
+    <string name="parent_pairing_host_address_label">主机地址：%1$s</string>
+    <string name="parent_pairing_manual_code_label">手动配对码：%1$s</string>
     <string name="parent_pairing_waiting">正在等待子女设备扫描此二维码…</string>
     <string name="parent_pairing_success">配对成功！</string>
     <string name="parent_pairing_tailscale_missing">未在此设备上检测到 Tailscale。请安装 Tailscale 应用并登录家庭 tailnet，然后重试。</string>
