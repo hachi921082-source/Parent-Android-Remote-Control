@@ -1,0 +1,20 @@
+<Window x:Class="FamilyRemote.PcClient.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:res="clr-namespace:FamilyRemote.PcClient.Resources"
+        Title="{x:Static res:Strings.AppTitle}"
+        Width="960" Height="640"
+        MinWidth="480" MinHeight="360"
+        WindowStartupLocation="CenterScreen">
+    <!--
+        Ordinary resizable, taskbar-visible window: no ShowInTaskbar="False", no
+        WindowStyle="ToolWindow", no tray icon anywhere in this project
+        (docs/pc-client-spec.md §3 / docs/DECISIONS.md #20).
+
+        RootContent is the content-switching root later tiers (connection-state-ui) populate with
+        the pairing-selection -> WaitingForParent -> Live -> Reconnecting -> Disconnected screens
+        (docs/plans/pc-client/connection-state-ui/PLAN.md). This plan owns only the window chrome,
+        not what's placed inside RootContent.
+    -->
+    <Grid x:Name="RootContent" />
+</Window>
