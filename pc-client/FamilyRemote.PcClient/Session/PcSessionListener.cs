@@ -2,6 +2,7 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text.Json;
+using System.Threading;
 using FamilyRemote.PcClient.Common;
 using FamilyRemote.PcClient.Net;
 using FamilyRemote.PcClient.Pairing;
@@ -27,10 +28,20 @@ public sealed class PcSessionListener
     private volatile bool _stoppedByUs;
 
     /// <summary>
+    /// AcceptLoopが稼働中かどうか（GitHub issue #15）。0=idle、1=稼働中。呼び出し元
+    /// (<see cref="ConnectionStateStore"/>)は実質的にUIディスパッチャスレッド上でのみStartを呼ぶが、
+    /// Retryボタンの連打等でごく短時間に2回のStart呼び出しが起こり得るため、Interlockedで
+    /// 確実にチェック&セットする。
+    /// </summary>
+    private int _acceptLoopActive;
+
+    /// <summary>
     /// 待ち受けを開始する（既に開いているリスナーがあれば再利用 -- §4 step 4のReconnecting再武装、
     /// および同一WaitingForParent内での複数回呼び出しに対応）。ハンドシェイクが成立した接続ごとに
     /// <paramref name="onConnected"/>を1回呼び、その時点でこのループは終了する（呼び出し側が
     /// Reconnecting等で再度受け付けたければ、リスナーを開いたまま再度Startを呼ぶ）。
+    /// 直前のAcceptLoopがまだ稼働中（onConnected/onFailedのいずれもまだ呼ばれていない）場合、
+    /// この呼び出しは無視される -- 二重のAcceptTcpClientAsync()ループを防ぐため（GitHub issue #15）。
     /// </summary>
     /// <param name="entry">選択中のペアリング -- SharedSecretの照合に使う。</param>
     /// <param name="onConnected">ハンドシェイク成立時、確立済みチャネルを渡して1回だけ呼ばれる。</param>
@@ -41,50 +52,62 @@ public sealed class PcSessionListener
     /// </param>
     public void Start(PcPairingEntry entry, Action<SessionChannel> onConnected, Action<string> onFailed)
     {
+        if (Interlocked.CompareExchange(ref _acceptLoopActive, 1, 0) != 0)
+        {
+            return;
+        }
+
         _stoppedByUs = false;
         Task.Run(() => AcceptLoop(entry, onConnected, onFailed));
     }
 
     private async Task AcceptLoop(PcPairingEntry entry, Action<SessionChannel> onConnected, Action<string> onFailed)
     {
-        TcpListener listener;
         try
         {
-            listener = EnsureBoundListener();
-        }
-        catch (IOException ex)
-        {
-            onFailed(ex.Message);
-            return;
-        }
-
-        while (true)
-        {
-            TcpClient client;
+            TcpListener listener;
             try
             {
-                client = await listener.AcceptTcpClientAsync().ConfigureAwait(false);
+                listener = EnsureBoundListener();
             }
-            catch (Exception ex) when (ex is ObjectDisposedException or SocketException)
+            catch (IOException ex)
             {
-                // Stop()がリスナーを閉じたことによる中断はクリーンなキャンセルとして扱い、
-                // エラー報告しない（PLAN.md §4 step 3）。それ以外（OS都合の異常切断等）は報告する。
-                if (!_stoppedByUs)
+                onFailed(ex.Message);
+                return;
+            }
+
+            while (true)
+            {
+                TcpClient client;
+                try
                 {
-                    onFailed(ex.Message);
+                    client = await listener.AcceptTcpClientAsync().ConfigureAwait(false);
+                }
+                catch (Exception ex) when (ex is ObjectDisposedException or SocketException)
+                {
+                    // Stop()がリスナーを閉じたことによる中断はクリーンなキャンセルとして扱い、
+                    // エラー報告しない（PLAN.md §4 step 3）。それ以外（OS都合の異常切断等）は報告する。
+                    if (!_stoppedByUs)
+                    {
+                        onFailed(ex.Message);
+                    }
+
+                    return;
                 }
 
-                return;
-            }
+                if (TryValidateHandshake(client, entry, out NetworkStream? stream))
+                {
+                    onConnected(new SessionChannel(stream!));
+                    return;
+                }
 
-            if (TryValidateHandshake(client, entry, out NetworkStream? stream))
-            {
-                onConnected(new SessionChannel(stream!));
-                return;
+                // SharedSecret不一致/不正フレーム -- ロックアウトせず待ち受けを継続する
+                // （PLAN.md §4 step 2、Android版ChildSessionListenerと同じ低セキュリティ方針）。
             }
-
-            // SharedSecret不一致/不正フレーム -- ロックアウトせず待ち受けを継続する
-            // （PLAN.md §4 step 2、Android版ChildSessionListenerと同じ低セキュリティ方針）。
+        }
+        finally
+        {
+            Interlocked.Exchange(ref _acceptLoopActive, 0);
         }
     }
 

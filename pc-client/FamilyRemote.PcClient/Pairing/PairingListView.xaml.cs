@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using FamilyRemote.PcClient.Resources;
 
 namespace FamilyRemote.PcClient.Pairing;
@@ -51,9 +52,17 @@ public partial class PairingListView : UserControl
         AddNewPairingRequested?.Invoke(this, EventArgs.Empty);
     }
 
-    private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+    /// <summary>
+    /// Fired by the row's own <c>Grid.MouseLeftButtonUp</c> (bubbling, not
+    /// <c>Selector.SelectionChanged</c> -- see the XAML comment above the template for why). Deliberately
+    /// not routed through ListBox selection at all: clicking the Rename/Delete buttons inside a row
+    /// marks their own MouseLeftButtonUp handled as an ordinary side effect of ButtonBase's click
+    /// handling, so this handler (registered without handledEventsToo) never runs for those clicks,
+    /// and no separate suppression logic is needed here.
+    /// </summary>
+    private void OnRowClick(object sender, MouseButtonEventArgs e)
     {
-        if (EntryList.SelectedItem is PcPairingEntry entry)
+        if (((FrameworkElement)sender).DataContext is PcPairingEntry entry)
         {
             PairingEntrySelected?.Invoke(this, entry);
         }

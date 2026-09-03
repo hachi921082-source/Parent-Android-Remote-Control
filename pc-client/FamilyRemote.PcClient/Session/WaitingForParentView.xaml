@@ -1,0 +1,28 @@
+<UserControl x:Class="FamilyRemote.PcClient.Session.WaitingForParentView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:res="clr-namespace:FamilyRemote.PcClient.Resources">
+    <!--
+        WaitingForParent screen (docs/plans/pc-client/connection-state-ui/PLAN.md §5): indeterminate
+        "waiting for parent to start sharing" indicator + Cancel, plus a dismissible inline
+        listener-failure error + Retry (hidden unless ConnectionStateStore.ListenerError is set).
+        Content (pairing label / error visibility) is set entirely from code-behind by whoever hosts
+        this control (MainWindow), not bound here.
+    -->
+    <Grid Margin="24">
+        <StackPanel MaxWidth="360" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <ProgressBar x:Name="WaitingProgressBar" IsIndeterminate="True" Height="4" Margin="0,0,0,16" />
+            <TextBlock x:Name="WaitingText" TextWrapping="Wrap" HorizontalAlignment="Center" Margin="0,0,0,16" />
+
+            <Button x:Name="CancelButton" Content="{x:Static res:Strings.ActionCancel}"
+                    HorizontalAlignment="Center" Padding="16,4" Click="OnCancelClick" />
+
+            <TextBlock x:Name="ListenerErrorText" Text="{x:Static res:Strings.SessionListenerError}"
+                       TextWrapping="Wrap" Foreground="Firebrick" Margin="0,16,0,8"
+                       Visibility="Collapsed" />
+            <Button x:Name="RetryButton" Content="{x:Static res:Strings.ActionRetry}"
+                    HorizontalAlignment="Center" Padding="16,4" Click="OnRetryClick"
+                    Visibility="Collapsed" />
+        </StackPanel>
+    </Grid>
+</UserControl>

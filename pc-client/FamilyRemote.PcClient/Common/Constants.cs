@@ -35,4 +35,15 @@ public static class Constants
 
     /// <summary>ライブセッションTCPポート。docs/plans/pc-client/README.md §6参照（Android側SESSION_PORTと同値）。</summary>
     public const int SessionPort = 47321;
+
+    // --- Connection-state-ui (このtier). docs/plans/pc-client/connection-state-ui/PLAN.md §7参照。 ---
+
+    /// <summary>親からのSTATUS_HEARTBEAT送信間隔（ミリ秒）。Android側HEARTBEAT_INTERVAL_MSと同値。</summary>
+    public const long HeartbeatIntervalMs = 5000;
+
+    /// <summary>Live→Reconnecting遷移のしきい値（ハートビート欠落回数）。Android側MISSED_HEARTBEAT_THRESHOLDと同値。</summary>
+    public const int MissedHeartbeatThreshold = 3;
+
+    /// <summary>Reconnecting→Disconnected遷移までの猶予（ミリ秒）。Android側RECONNECT_WINDOW_MSと同値。</summary>
+    public const long ReconnectWindowMs = 60_000;
 }
