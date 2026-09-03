@@ -1,0 +1,9 @@
+<Application x:Class="FamilyRemote.PcClient.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!--
+        StartupUri is intentionally omitted: App.OnStartup constructs and shows MainWindow itself,
+        after single-instance enforcement and UI-culture resolution have both run.
+    -->
+    <Application.Resources />
+</Application>
