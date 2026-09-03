@@ -1,23 +1,24 @@
 <UserControl x:Class="FamilyRemote.PcClient.Session.LiveView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:FamilyRemote.PcClient.Session">
+             xmlns:local="clr-namespace:FamilyRemote.PcClient.Session"
+             xmlns:video="clr-namespace:FamilyRemote.PcClient.Video">
     <!--
         Live/Reconnecting content (docs/plans/pc-client/connection-state-ui/PLAN.md §6). Composes:
-          - VideoSlot / TapMarkerSlot: EMPTY reserved cells for video-and-session/decode's VideoView
-            and input-relay's TapMarkerOverlay (docs/plans/pc-client/README.md §8 build-order tiers
-            5/6 — neither exists yet as of this tier). Left intentionally blank, not stubbed, so
-            those tiers can add their control as the sole child of the corresponding Grid cell
-            without touching this file's structure.
-          - TextInputSlot: same idea, reserved for input-relay's TextInputBar.
-          - StatusPanel (ParentStatusPanel): real, functional, this tier's own §6.
-          - Banner (ReconnectingBanner): real, functional, this tier's own §7 — additive overlay,
-            never clears VideoSlot's content (there is none yet, but the layout must not assume
-            otherwise once Tier 5 lands).
+          - VideoSlot: hosts Video (VideoView, video-and-session/decode.PLAN.md §2/§6) as its sole
+            child. TapMarkerSlot is not a separate cell here: input-relay (not yet implemented,
+            docs/plans/pc-client/README.md §8 build-order tier 6) layers its TapMarkerOverlay above
+            Video within this same VideoSlot cell.
+          - TextInputSlot: reserved for input-relay's TextInputBar.
+          - StatusPanel (ParentStatusPanel): real, functional, connection-state-ui's own §6.
+          - Banner (ReconnectingBanner): real, functional, connection-state-ui's own §7 — additive
+            overlay, never clears VideoSlot's content.
         A fresh LiveView instance is constructed only on a genuinely new Live entry (WaitingForParent
         -> Live); it is reused as-is across Live<->Reconnecting cycles within one connection attempt
         (owned by MainWindow, not this file) so neither video nor zoom state is dropped by a mere
-        reconnect blip.
+        reconnect blip. Video (VideoView) is declared here but bound to its MediaFoundationDecoder
+        from code-behind via Attach() (LiveView.xaml.cs): ConnectionStateStore.Decoder is the
+        owner of that decoder's lifecycle, not this control (decode.PLAN.md §4 step 1).
     -->
     <Grid Background="Black">
         <Grid.RowDefinitions>
@@ -26,7 +27,7 @@
         </Grid.RowDefinitions>
 
         <Grid Grid.Row="0" x:Name="VideoSlot">
-            <!-- TODO(video-and-session/decode): VideoView is the sole child of this cell. -->
+            <video:VideoView x:Name="Video" />
             <!-- TODO(input-relay): TapMarkerOverlay layers above VideoView, same cell. -->
         </Grid>
 
