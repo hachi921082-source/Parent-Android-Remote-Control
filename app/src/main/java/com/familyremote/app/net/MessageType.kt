@@ -19,6 +19,7 @@ enum class MessageType(val tag: Byte) {
     INPUT_TEXT(8),
     TEXT_INJECT_FAILED(9),
     SESSION_END(10),
+    INPUT_KEY(11),
 
     // Pairing-time-only exchange (README.md §4 "Pairing-time-only messages", PLAN.md §4) --
     // separate, short-lived connection, not part of the live-session protocol above.
