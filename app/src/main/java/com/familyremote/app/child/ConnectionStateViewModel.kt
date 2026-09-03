@@ -2,6 +2,7 @@ package com.familyremote.app.child
 
 import com.familyremote.app.common.ConnectionState
 import com.familyremote.app.common.Constants
+import com.familyremote.app.net.MessageFrame
 import com.familyremote.app.net.StatusPayload
 import com.familyremote.app.pairing.PairingEntry
 import kotlinx.coroutines.CoroutineScope
@@ -37,6 +38,14 @@ class ConnectionStateViewModel(private val scope: CoroutineScope) {
     private val listener = ChildSessionListener()
     private var channel: ChildSessionChannel? = null
     private var watchdog: HeartbeatWatchdog? = null
+
+    /**
+     * Set by the hosting screen (`SessionActivity`) before [startWaiting] to receive frame types
+     * this class doesn't itself parse -- `VIDEO_FRAME`, `ACCESSIBILITY_STATUS`, `TEXT_INJECT_FAILED`
+     * (owned by docs/plans/remote-input-control/PLAN.md). Read fresh on every dispatch so it stays
+     * correct across an internal [ChildSessionChannel] being replaced on reconnect (§6).
+     */
+    var onOtherMessage: (MessageFrame) -> Unit = {}
 
     fun startWaiting(pairing: PairingEntry) {
         _latestStatus.value = null
@@ -76,11 +85,17 @@ class ConnectionStateViewModel(private val scope: CoroutineScope) {
             socket = socket,
             onAnyMessage = { activeWatchdog.onMessageReceived() },
             onStatusUpdate = { payload -> _latestStatus.value = payload },
-            onSessionEnded = { watchdog?.notifyConnectionLost() }
+            onSessionEnded = { watchdog?.notifyConnectionLost() },
+            onOtherMessage = { frame -> onOtherMessage(frame) }
         )
         channel = newChannel
         newChannel.startReading(scope)
     }
+
+    /** Sends a frame to the parent over the currently-live channel, or does nothing (returns
+     * `false`) if there is none -- used by `TapInputController`/`TextInputBar`
+     * (docs/plans/remote-input-control/PLAN.md §4/§8). */
+    suspend fun sendFrame(frame: MessageFrame): Boolean = channel?.sendFrame(frame) ?: false
 
     private fun onReconnectingDetected(pairing: PairingEntry) {
         val current = _state.value

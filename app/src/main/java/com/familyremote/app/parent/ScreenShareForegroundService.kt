@@ -19,7 +19,11 @@ import android.os.Looper
 import androidx.core.app.NotificationCompat
 import com.familyremote.app.MainActivity
 import com.familyremote.app.R
+import com.familyremote.app.common.AccessibilityPermissionMonitor
 import com.familyremote.app.common.Constants
+import com.familyremote.app.net.AccessibilityStatusPayload
+import com.familyremote.app.net.MessageFrame
+import com.familyremote.app.net.MessageType
 import com.familyremote.app.net.StatusPayload
 import com.familyremote.app.net.VideoFrameMessage
 import com.familyremote.app.pairing.AuthorizedChild
@@ -64,6 +68,10 @@ class ScreenShareForegroundService : Service() {
     private var expectedChildCount = 0
     private var endedChildCount = 0
 
+    /** Last value broadcast by [startAccessibilityStatusTicker] -- `null` until the first check
+     * runs, so that check's result is always sent even if it happens to read `false`. */
+    private var lastKnownAccessibilityGranted: Boolean? = null
+
     private val projectionCallback = object : MediaProjection.Callback() {
         override fun onStop() {
             // Fires identically whether the app or the OS status-bar control initiated the stop
@@ -77,6 +85,7 @@ class ScreenShareForegroundService : Service() {
     override fun onCreate() {
         super.onCreate()
         _isRunning.value = true
+        activeInstance = this
         mediaProjectionManager = getSystemService(MediaProjectionManager::class.java)
         wakeLockController = ParentWakeLockController(this)
         sessionStateStore = SessionStateStore(this)
@@ -156,6 +165,28 @@ class ScreenShareForegroundService : Service() {
         // §5 -- hands its payloads off to whichever ParentSessionServer instances are connected
         // at broadcast time (mirrors broadcastVideoFrame's fan-out below).
         statusMonitor.start(serviceScope)
+        startAccessibilityStatusTicker()
+    }
+
+    /**
+     * Periodic check (docs/plans/remote-input-control/PLAN.md §7, detailed-spec §11): every
+     * [Constants.ACCESSIBILITY_PERIODIC_CHECK_INTERVAL_MS] while a session is Live, broadcasts
+     * `ACCESSIBILITY_STATUS {granted}` to every connected child whenever the value *changes*
+     * (not every tick) -- the pre-flight check in `ParentAccessibilityService` already catches
+     * revocation on every actual input attempt; this only surfaces it during idle stretches.
+     */
+    private fun startAccessibilityStatusTicker() {
+        lastKnownAccessibilityGranted = null
+        serviceScope.launch {
+            while (currentCoroutineContext().isActive) {
+                val granted = AccessibilityPermissionMonitor.isGranted(this@ScreenShareForegroundService)
+                if (granted != lastKnownAccessibilityGranted) {
+                    lastKnownAccessibilityGranted = granted
+                    broadcastFrame(AccessibilityStatusPayload(granted).toFrame())
+                }
+                delay(Constants.ACCESSIBILITY_PERIODIC_CHECK_INTERVAL_MS)
+            }
+        }
     }
 
     private fun dialAuthorizedChildren() {
@@ -179,11 +210,7 @@ class ScreenShareForegroundService : Service() {
             val server = ParentSessionServer(
                 child = child,
                 port = Constants.SESSION_PORT,
-                onMessageReceived = {
-                    // INPUT_TAP/INPUT_SWIPE/INPUT_TEXT, owned by remote-input-control (not yet
-                    // built) -- intentionally unhandled here per PLAN.md §2/§6 so a later tier can
-                    // attach its own handling without needing to touch this file again.
-                },
+                onMessageReceived = { frame -> onInputFrameReceived(frame) },
                 onSessionEnded = { reason -> onChildSessionEnded(child, reason) }
             )
             val connected = server.connect(serviceScope)
@@ -232,13 +259,34 @@ class ScreenShareForegroundService : Service() {
     }
 
     private fun broadcastStatus(payload: StatusPayload, isEvent: Boolean) {
-        val frame = payload.toFrame(isEvent)
+        broadcastFrame(payload.toFrame(isEvent))
+    }
+
+    /**
+     * Generic fan-out to every connected child, reused by [broadcastStatus], the
+     * `ACCESSIBILITY_STATUS` ticker (§7), and [sendFrameToConnectedChildren] (the companion-level
+     * entry point [ParentAccessibilityService] uses for `TEXT_INJECT_FAILED`,
+     * docs/plans/remote-input-control/PLAN.md §6/§8).
+     */
+    private fun broadcastFrame(frame: MessageFrame) {
         serviceScope.launch(Dispatchers.IO) {
             sessionServersByChild.values.toList().forEach { server ->
                 if (server.isConnected()) {
                     server.sendFrame(frame)
                 }
             }
+        }
+    }
+
+    /** Routes an inbound `INPUT_TAP`/`INPUT_SWIPE`/`INPUT_TEXT` frame (already deframed by
+     * [ParentSessionServer]) to the currently-bound [ParentAccessibilityService], if any -- a
+     * no-op if the Accessibility Service isn't connected (view-only from the child's perspective,
+     * PLAN.md §7). */
+    private fun onInputFrameReceived(frame: MessageFrame) {
+        if (frame.type == MessageType.INPUT_TAP || frame.type == MessageType.INPUT_SWIPE ||
+            frame.type == MessageType.INPUT_TEXT
+        ) {
+            connectedAccessibilityService?.onInputFrameReceived(frame)
         }
     }
 
@@ -311,6 +359,7 @@ class ScreenShareForegroundService : Service() {
         releaseCaptureResources()
         serviceJob.cancel()
         _isRunning.value = false
+        if (activeInstance === this) activeInstance = null
     }
 
     private fun createNotificationChannel() {
@@ -355,6 +404,35 @@ class ScreenShareForegroundService : Service() {
         /** Backs the duplicate-launch guard (PLAN.md §4) -- checked by
          * [ShareStartTrampolineActivity] before requesting a new capture intent. */
         val isRunning: StateFlow<Boolean> = _isRunning.asStateFlow()
+
+        /** The currently-running instance, if any -- set/cleared in [onCreate]/[onDestroy]. Backs
+         * [sendFrameToConnectedChildren], the one companion-level entry point that needs to reach
+         * into this service's instance state (`sessionServersByChild`) from outside
+         * (docs/plans/remote-input-control/PLAN.md §6). */
+        @Volatile
+        private var activeInstance: ScreenShareForegroundService? = null
+
+        /** Set by [ParentAccessibilityService.onServiceConnected]/cleared by its `onDestroy` --
+         * the companion reference [ParentAccessibilityService] "binds" through, per
+         * docs/plans/README.md §8's dependency-table note. Nullable: input frames simply have
+         * nowhere to go (silently dropped) while no Accessibility Service is connected, which is
+         * the expected view-only-from-the-child's-perspective state (PLAN.md §7). */
+        @Volatile
+        private var connectedAccessibilityService: ParentAccessibilityService? = null
+
+        fun attachAccessibilityService(service: ParentAccessibilityService) {
+            connectedAccessibilityService = service
+        }
+
+        fun detachAccessibilityService(service: ParentAccessibilityService) {
+            if (connectedAccessibilityService === service) connectedAccessibilityService = null
+        }
+
+        /** Entry point [ParentAccessibilityService] uses to relay `TEXT_INJECT_FAILED` back to
+         * every connected child (PLAN.md §6/§8) -- a no-op if no session is currently active. */
+        fun sendFrameToConnectedChildren(frame: MessageFrame) {
+            activeInstance?.broadcastFrame(frame)
+        }
 
         private const val ACTION_STOP = "com.familyremote.app.parent.action.STOP"
         private const val EXTRA_RESULT_CODE = "extra_result_code"

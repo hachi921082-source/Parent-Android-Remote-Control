@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Config for ParentAccessibilityService, per docs/plans/remote-input-control/PLAN.md §6.
+    canRetrieveWindowContent + flagRetrieveInteractiveWindows: needed for rootInActiveWindow /
+    findFocus(FOCUS_INPUT) (§16 text injection). canPerformGestures: needed for dispatchGesture
+    (tap/swipe injection). No accessibilityEventTypes beyond the minimum required by the platform
+    are actually consumed: gesture/text injection is driven by inbound network frames, not by
+    observed accessibility events (see ParentAccessibilityService.onAccessibilityEvent).
+-->
+<accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:accessibilityEventTypes="typeAllMask"
+    android:accessibilityFeedbackType="feedbackGeneric"
+    android:canPerformGestures="true"
+    android:canRetrieveWindowContent="true"
+    android:accessibilityFlags="flagRetrieveInteractiveWindows"
+    android:description="@string/accessibility_service_description"
+    android:notificationTimeout="100" />

@@ -10,6 +10,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.net.Socket
 
@@ -29,6 +30,9 @@ class ChildSessionChannel(
 ) {
     @Volatile
     private var closedByUs = false
+
+    @Volatile
+    private var writable = true
 
     private var readJob: Job? = null
 
@@ -57,9 +61,29 @@ class ChildSessionChannel(
         }
     }
 
+    /**
+     * Sends a frame back to the parent over this channel's socket -- the child-side counterpart of
+     * `ParentSessionServer.sendFrame`, used by `TapInputController`/`TextInputBar`
+     * (docs/plans/remote-input-control/PLAN.md §4/§8) to deliver `INPUT_TAP`/`INPUT_SWIPE`/
+     * `INPUT_TEXT`. Best-effort: a write failure marks the channel unwritable and lets the read
+     * loop's own `IOException` handling report `connection_lost` in the normal way, rather than
+     * duplicating that reporting here.
+     */
+    suspend fun sendFrame(frame: MessageFrame): Boolean = withContext(Dispatchers.IO) {
+        if (!writable) return@withContext false
+        try {
+            frame.writeTo(socket.getOutputStream())
+            true
+        } catch (e: IOException) {
+            writable = false
+            false
+        }
+    }
+
     /** Closes the socket -- used when we already know the session ended (do not re-report). */
     fun close() {
         closedByUs = true
+        writable = false
         readJob?.cancel()
         runCatching { socket.close() }
     }

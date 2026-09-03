@@ -6,6 +6,7 @@ import android.os.Bundle
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import com.familyremote.app.common.AccessibilityPermissionMonitor
 
 /**
  * Orchestrates onboarding steps 2->3->4 (detailed-spec §13), which are all performed physically
@@ -39,7 +40,7 @@ class OnboardingWizardActivity : AppCompatActivity() {
     private fun runCurrentStep() {
         when (currentStep) {
             Step.ACCESSIBILITY -> {
-                if (AccessibilityPermissionCheck.isAnyAccessibilityServiceEnabledForThisApp(this)) {
+                if (AccessibilityPermissionMonitor.isGranted(this)) {
                     advanceToNextStep()
                 } else {
                     stepLauncher.launch(Intent(this, AccessibilityOnboardingActivity::class.java))
