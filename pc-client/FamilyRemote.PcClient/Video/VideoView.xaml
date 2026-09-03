@@ -1,0 +1,26 @@
+<UserControl x:Class="FamilyRemote.PcClient.Video.VideoView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:res="clr-namespace:FamilyRemote.PcClient.Resources"
+             SizeChanged="OnSizeChanged">
+    <!--
+        Renders the latest decoded video frame, letterboxed/pillarboxed within this control's
+        bounds (docs/plans/pc-client/video-and-session/decode.PLAN.md §6). FrameImage is positioned
+        to exactly the current RenderedContentRect via explicit Width/Height/Margin set from
+        code-behind on every recompute: WPF's own layout system does the black-bar positioning
+        (background of the outer Grid stays black), no manual pixel compositing needed.
+
+        SecureHintButton is a small, always-available FLAG_SECURE hint (decode.PLAN.md §9): no
+        detection logic exists (or can exist) for that case, so it's a static hover tooltip, not a
+        dynamically shown/hidden affordance.
+    -->
+    <Grid Background="Black">
+        <Image x:Name="FrameImage" Stretch="Fill" HorizontalAlignment="Left" VerticalAlignment="Top" />
+
+        <Button x:Name="SecureHintButton" Content="&#8505;" Width="24" Height="24"
+                HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="8"
+                Foreground="White" Background="#55000000" BorderThickness="0"
+                FontWeight="Bold" Cursor="Help"
+                ToolTip="{x:Static res:Strings.VideoFlagSecureHint}" />
+    </Grid>
+</UserControl>

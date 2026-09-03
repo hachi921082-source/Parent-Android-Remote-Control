@@ -146,10 +146,9 @@ public partial class MainWindow : Window
     /// </summary>
     private void MainWindow_Closing(object? sender, CancelEventArgs e)
     {
-        // アクティブなリスナー/チャネルがあれば片付ける（docs/plans/pc-client/connection-state-ui/
-        // PLAN.md §8）。MediaFoundationDecoderの破棄はまだこのtierの責務ではない
-        // （video-and-session/decodeが未実装のため、ConnectionStateStore.Teardown側にも同旨のコメント
-        // あり）。
+        // アクティブなリスナー/チャネル/MediaFoundationDecoderをまとめて片付ける
+        // （docs/plans/pc-client/connection-state-ui/PLAN.md §8、video-and-session/decode.PLAN.md
+        // §4 step 1）。
         _store.Teardown();
 
         // アプリ終了は無条件（Cancelしない）。プロセスはWPFの通常のシャットダウンフローで終了する。

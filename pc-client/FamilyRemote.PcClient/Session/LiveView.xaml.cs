@@ -3,10 +3,11 @@ using System.Windows.Controls;
 namespace FamilyRemote.PcClient.Session;
 
 /// <summary>
-/// LiveView.xamlのコードビハインド。docs/plans/pc-client/connection-state-ui/PLAN.md §6/§7参照。
-/// このtierが持つのは<see cref="ParentStatusPanel"/>の更新と<see cref="ReconnectingBanner"/>の
-/// 表示切り替えのみ -- VideoSlot/TextInputSlotへの実装は後続tier（video-and-session/decode,
-/// input-relay）の責務。
+/// LiveView.xamlのコードビハインド。docs/plans/pc-client/connection-state-ui/PLAN.md §6/§7、
+/// video-and-session/decode.PLAN.md §2参照。<see cref="ParentStatusPanel"/>の更新と
+/// <see cref="ReconnectingBanner"/>の表示切り替え（connection-state-ui）に加え、<see cref="Video"/>
+/// を<c>store.Decoder</c>へ結びつける（decode）。TextInputSlotへの実装は後続tier（input-relay）の
+/// 責務。
 /// </summary>
 public partial class LiveView : UserControl
 {
@@ -16,6 +17,11 @@ public partial class LiveView : UserControl
     {
         InitializeComponent();
         _store = store;
+
+        // store.Decoderは、新規Live突入時点でConnectionStateStore.OnConnectedが既に構築済み
+        // （LiveViewが構築されるのはConnectionStateがLiveへ遷移した後のみのため -- decode.PLAN.md
+        // §4 step 1、Session/ConnectionStateStore.csのDecoderプロパティのコメント参照）。
+        Video.Attach(store.Decoder!);
 
         StatusPanel.Render(store.LatestStatus);
         RenderBanner(store.State);

@@ -1,6 +1,7 @@
 using System.Windows.Threading;
 using FamilyRemote.PcClient.Net;
 using FamilyRemote.PcClient.Pairing;
+using FamilyRemote.PcClient.Video;
 
 namespace FamilyRemote.PcClient.Session;
 
@@ -32,8 +33,18 @@ public sealed class ConnectionStateStore
 
     private SessionChannel? _channel;
     private HeartbeatWatchdog? _watchdog;
+    private MediaFoundationDecoder? _decoder;
 
     public ConnectionState State { get; private set; } = new ConnectionState.Idle();
+
+    /// <summary>
+    /// Live/Reconnectingの間だけ非null（video-and-session/decode.PLAN.md §4 step 1）。新規Live突入時
+    /// にのみ新しいインスタンスを構築し、Live&lt;-&gt;Reconnecting往復では使い回す
+    /// -- <see cref="MainWindow.OnStoreStateChanged"/>がこのプロパティを読んで<see cref="Session.LiveView"/>
+    /// を構築する時点（<see cref="SetState"/>がLiveへ遷移するのと同期）で既に非nullである必要があるため、
+    /// <see cref="OnConnected"/>はSetStateより前にこれを構築する。
+    /// </summary>
+    public MediaFoundationDecoder? Decoder => _decoder;
 
     /// <summary>状態が変わるたびに発火する。常にUIスレッド上で呼ばれる。</summary>
     public event Action<ConnectionState>? StateChanged;
@@ -108,6 +119,12 @@ public sealed class ConnectionStateStore
 
     private void OnConnected(PcPairingEntry pairing, SessionChannel channel)
     {
+        // MediaFoundationDecoderは新規Live突入時のみ構築し、SetStateより前に用意しておく --
+        // MainWindow.OnStoreStateChangedはStateChangedを同期的に受けてLiveViewを構築し、その場で
+        // Decoderを読む（video-and-session/decode.PLAN.md §4 step 1）。Reconnecting経由の再接続
+        // （既にDecoderが存在する場合）は既存インスタンスを使い回す。
+        _decoder ??= new MediaFoundationDecoder();
+
         SetState(new ConnectionState.Live(pairing));
 
         HeartbeatWatchdog watchdog = _watchdog ??= new HeartbeatWatchdog(
@@ -118,9 +135,23 @@ public sealed class ConnectionStateStore
         _channel?.Close();
         channel.RegisterHandler(MessageType.StatusHeartbeat, frame => OnStatusFrame(frame, watchdog, isEvent: false));
         channel.RegisterHandler(MessageType.StatusEvent, frame => OnStatusFrame(frame, watchdog, isEvent: true));
+        channel.RegisterHandler(MessageType.VideoFrame, frame => OnVideoFrame(frame, watchdog));
         channel.ConnectionLost += () => watchdog.NotifyConnectionLost();
         _channel = channel;
         channel.Start();
+    }
+
+    /// <summary>
+    /// SessionChannelの読み取りループ（バックグラウンドスレッド）から直接呼ばれる。映像は高頻度データ
+    /// のため、STATUS系と異なりUIスレッドへのマーシャリングは一切行わない -- デコーダへそのまま渡す
+    /// だけ（video-and-session/decode.PLAN.md §4 step 4、Android側ChildSessionChannel.readLoopが
+    /// 全メッセージ型に対して<c>onAnyMessage()</c>を呼ぶのと同じ理由で、何か受信できた時点でハート
+    /// ビート欠落クロックもリセットする）。
+    /// </summary>
+    private void OnVideoFrame(MessageFrame frame, HeartbeatWatchdog watchdog)
+    {
+        watchdog.OnMessageReceived();
+        _decoder?.FeedFrame(VideoFrameMessage.Parse(frame));
     }
 
     /// <summary>
@@ -186,14 +217,15 @@ public sealed class ConnectionStateStore
         _channel = null;
         _watchdog?.Stop();
         _watchdog = null;
+        _decoder?.Dispose();
+        _decoder = null;
         _listener.Stop();
         SetState(new ConnectionState.Disconnected(pairing));
     }
 
     /// <summary>
-    /// MainWindow.Closingから呼ぶ（PLAN.md §8）。リスナー停止・チャネル破棄のみを行う --
-    /// MediaFoundationDecoderの破棄はvideo-and-session/decode（未実装tier）が持つべき責務のため、
-    /// ここでは意図的に含めない（このtierの時点ではデコーダの概念自体が存在しない）。
+    /// MainWindow.Closingから呼ぶ（connection-state-ui/PLAN.md §8）。リスナー・チャネル・
+    /// MediaFoundationDecoderをまとめて破棄する（video-and-session/decode.PLAN.md §4 step 1）。
     /// </summary>
     public void Teardown()
     {
@@ -202,6 +234,8 @@ public sealed class ConnectionStateStore
         _channel = null;
         _watchdog?.Stop();
         _watchdog = null;
+        _decoder?.Dispose();
+        _decoder = null;
     }
 
     private void SetState(ConnectionState newState)

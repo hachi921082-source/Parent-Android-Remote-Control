@@ -21,6 +21,22 @@
   </ItemGroup>
 
   <!--
+    Vortice.MediaFoundation: a typed, source-generated .NET wrapper over the Windows Media
+    Foundation COM API (IMFTransform, IMFMediaType, IMFSample, IMFMediaBuffer, ...), used by
+    Video/MediaFoundationDecoder.cs to drive the OS's own H.264 decoder MFT
+    (docs/plans/pc-client/video-and-session/decode.PLAN.md §3, docs/DECISIONS.md #16). Chosen over
+    hand-rolled raw COM interop for the bulk of the API surface, and over any third-party codec
+    library (e.g. FFmpeg bindings): it bundles no decoder of its own and no native codec binary,
+    only typed bindings to Media Foundation DLLs already present on the OS, so it introduces no
+    LGPL-style redistribution obligation (the concern Decision #16 was avoiding). The one COM
+    interface this package does not expose a typed wrapper for, ICodecAPI (needed for
+    CODECAPI_AVLowLatencyMode, decode.PLAN.md §5), is declared by hand in Video/ICodecApi.cs.
+  -->
+  <ItemGroup>
+    <PackageReference Include="Vortice.MediaFoundation" Version="3.8.3" />
+  </ItemGroup>
+
+  <!--
     Strings.resx (neutral / English fallback) is backed by a hand-authored Strings.Designer.cs
     (Resources\Strings.Designer.cs) rather than Visual Studio's ResXFileCodeGenerator single-file
     generator tool, since that tool only runs inside the VS IDE and has no plain `dotnet build`
