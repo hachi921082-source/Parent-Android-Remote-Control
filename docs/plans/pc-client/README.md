@@ -16,6 +16,7 @@ separate, per explicit user instruction. -->
 5. Shared Message Protocol (Reused + New)
 6. Shared Constants (PC Side)
 7. Cross-References
+8. Build Order (Implementation Tiers)
 
 ## 1. Feature Map
 
@@ -102,3 +103,23 @@ Defined in `Common/Constants.cs`, one `static class`, mirroring the Android app'
 - `docs/DECISIONS.md` #15–#24 — PC-client-specific decisions and rationale.
 - `docs/plans/README.md` — Android app's shared foundations (wire protocol, data models, constants) that this feature reuses/extends.
 - `docs/plans/pairing-and-onboarding/PLAN.md`, `docs/plans/screen-sharing-core/PLAN.md`, `docs/plans/connection-status-and-resilience/PLAN.md`, `docs/plans/remote-input-control/PLAN.md`, `docs/plans/screen-rotation-handling/PLAN.md` — the five already-merged Android tiers this feature's plans repeatedly cross-reference for behavior parity.
+
+## 8. Build Order (Implementation Tiers)
+
+<!-- Derived from each PLAN.md's own §"Interactions With Other Features" (dependency direction stated there, not re-derived). Kept in this README rather than docs/plans/README.md's §8 dependency-tier table, consistent with this directory's exclusion from that table (see the top-of-file note and §2). Unlike the main app, this is a layered/bottom-up new codebase (App Shell → Pairing → Connectivity → State → Decode → UI features → peripheral input), so parallelization opportunity is limited to one tier. -->
+
+| Tier | Plan(s) | Depends on (prior tier) | Parallel? |
+|---|---|---|---|
+| 1 | `app-shell` | — | Solo |
+| 2 | `pairing-pc-side` | app-shell (`MainWindow` host, `Resources.Strings`, `Common.Constants`) | Solo |
+| 3 | `video-and-session/connectivity` | pairing-pc-side (`PcTailscaleAddressResolver`, `PcPairingEntry.ParentHost`/`SharedSecret`) | Solo |
+| 4 | `connection-state-ui` | video-and-session/connectivity (`PcSessionListener`/`Net.SessionChannel` as dial-in counterpart to the `ConnectionState` machine) | Solo |
+| 5 | `video-and-session/decode` | video-and-session/connectivity (deframed `VIDEO_FRAME` payloads), connection-state-ui (`MediaFoundationDecoder` lifecycle tied to `ConnectionState`) | Solo |
+| 6 | `zoom-magnifier` **and** `input-relay` | video-and-session/decode (both subscribe independently to the shared `RenderedContentRect`/`FrameGeometry` observable decode exposes — decode.PLAN.md §7 — so neither needs the other's code, only decode's) | **Parallel — 2 worktrees** |
+| 7 | `physical-key-relay-pc-side` | input-relay (shares `Input/InputAvailabilityState`, owned by input-relay), video-and-session/connectivity (adds `MessageType.InputKey`/`Net/InputKeyPayload.cs` to its `Net` package, already anticipated in connectivity's own component table) | Solo (see note below — 3-way parallel with Tier 6 possible) |
+
+Rationale for the single parallel opportunity as PLAN.md files stand today: this is new, bottom-up-layered code (unlike the original Android app's five tiers, which mostly extended an already-working base along independent seams). Every other plan pair has a stated one-directional dependency in its own "Interactions With Other Features" section; only zoom-magnifier and input-relay are explicitly designed (via decode's shared observable) to have no code-level dependency on each other.
+
+**Open note — Tier 6/7 merge possible, decide at Tier 6 time**: `physical-key-relay-pc-side`'s only dependency on `input-relay` is the small `Input/InputAvailabilityState` class (not `PointerInputController`/`TapMarkerOverlay`/`TextInputBar`, which it never touches). If `InputAvailabilityState` is hoisted out of `input-relay`'s ownership into an earlier shared location (e.g. `connection-state-ui`, which already gates both plans' activation on `ConnectionState.Live`/`Reconnecting`), `physical-key-relay-pc-side` would no longer need to wait for `input-relay` and could join Tier 6 as a third parallel worktree, eliminating Tier 7 entirely. This requires a small edit to `input-relay/PLAN.md`'s and `physical-key-relay-pc-side/PLAN.md`'s component tables (and wherever `InputAvailabilityState` newly lives) before it's cut as worktrees — not done yet. **Ask the user about this when Tier 6 is actually about to be implemented**, rather than deciding it now. Tiers 1–5 do not have an equivalent opening — each depends on the prior tier's actual running code (project scaffold / socket implementation / decode pipeline), not just a small shared type, so re-splitting their headings would not unlock further parallelism there.
+
+Practical use: cut one worktree per solo tier, or two (potentially three, per the note above) worktrees for Tier 6, following the same `developer-lite` → `reviewer-lite` → user go-ahead → merge flow used for the Android-side plans (see [HANDOFF.md](../../HANDOFF.md) §1). `reviewer-lite`'s build-verification step needs a `dotnet build`-equivalent, not `./gradlew`, once `pc-client/FamilyRemote.PcClient.sln` exists (Tier 1).
