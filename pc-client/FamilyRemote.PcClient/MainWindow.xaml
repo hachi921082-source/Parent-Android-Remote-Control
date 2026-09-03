@@ -11,10 +11,10 @@
         WindowStyle="ToolWindow", no tray icon anywhere in this project
         (docs/pc-client-spec.md §3 / docs/DECISIONS.md #20).
 
-        RootContent is the content-switching root later tiers (connection-state-ui) populate with
-        the pairing-selection -> WaitingForParent -> Live -> Reconnecting -> Disconnected screens
-        (docs/plans/pc-client/connection-state-ui/PLAN.md). This plan owns only the window chrome,
-        not what's placed inside RootContent.
+        RootContent is the content-switching root populated by MainWindow.xaml.cs (connection-state-ui
+        tier) with the pairing-selection -> WaitingForParent -> Live -> Reconnecting -> Disconnected
+        screens (docs/plans/pc-client/connection-state-ui/PLAN.md). This plan (app-shell) owns only
+        the window chrome, not what's placed inside RootContent.
     -->
     <Grid x:Name="RootContent" />
 </Window>
