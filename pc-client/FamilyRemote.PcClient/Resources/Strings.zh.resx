@@ -180,4 +180,49 @@
   <data name="ActionDelete" xml:space="preserve">
     <value>删除</value>
   </data>
+  <data name="ActionRetry" xml:space="preserve">
+    <value>重试</value>
+  </data>
+  <data name="SessionWaitingTitle" xml:space="preserve">
+    <value>正在等待{0}开始共享…</value>
+  </data>
+  <data name="SessionListenerError" xml:space="preserve">
+    <value>无法开始监听家长设备的连接。请检查Tailscale连接状态后重试。</value>
+  </data>
+  <data name="SessionStatusPlaceholder" xml:space="preserve">
+    <value>已连接。正在等待状态信息…</value>
+  </data>
+  <data name="SessionStatusWifiConnected" xml:space="preserve">
+    <value>Wi-Fi：已连接</value>
+  </data>
+  <data name="SessionStatusWifiDisconnected" xml:space="preserve">
+    <value>Wi-Fi：未连接</value>
+  </data>
+  <data name="SessionStatusNetworkType" xml:space="preserve">
+    <value>网络：{0}</value>
+  </data>
+  <data name="SessionStatusSignal" xml:space="preserve">
+    <value>信号强度：{0} dBm</value>
+  </data>
+  <data name="SessionStatusSsid" xml:space="preserve">
+    <value>网络名称：{0}</value>
+  </data>
+  <data name="NetworkTypeWifi" xml:space="preserve">
+    <value>Wi-Fi</value>
+  </data>
+  <data name="NetworkTypeCellular" xml:space="preserve">
+    <value>移动数据</value>
+  </data>
+  <data name="NetworkTypeNone" xml:space="preserve">
+    <value>无连接</value>
+  </data>
+  <data name="SessionReconnectingBanner" xml:space="preserve">
+    <value>正在重新连接…</value>
+  </data>
+  <data name="SessionDisconnectedTitle" xml:space="preserve">
+    <value>与{0}的连接已断开。如果问题持续，请让对方重新开始共享。</value>
+  </data>
+  <data name="SessionDisconnectedBack" xml:space="preserve">
+    <value>返回配对列表</value>
+  </data>
 </root>
