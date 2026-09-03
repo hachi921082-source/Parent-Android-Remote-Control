@@ -188,13 +188,15 @@ Both already iterate `sessionServersByChild.values` generically; since §3.1-§3
 never holds more than one entry once claimed, no change is required there. Left as-is deliberately —
 noted so a future reviewer doesn't go looking for a diff that isn't needed.
 
-## 4. OPEN QUESTION — Reject vs. Queue vs. Silent-Drop (not decided by this plan)
+## 4. RESOLVED — Explicit "Busy" Notice, Then Give Up (Terminal)
 
-`docs/QA.md` ("Exclusive Single-Session Model") explicitly lists three named options and leaves the
-choice open: **silent drop**, **explicit "busy" response**, and **queue-and-connect-after**. This
-plan does not pick one — per this task's explicit instruction, an implementing session must not
-silently resolve this itself. What follows is the concrete design space so whichever option is
-chosen requires only the described delta, not a redesign.
+**Decided 2026-09-03** — see `docs/QA.md` ("Single-Session Rejection Mechanism"): the "Explicit +
+give up" row below is the chosen design. The losing client is told immediately via `SESSION_BUSY`
+and does not automatically retry. §5 and §6 below (previously conditional) now apply as written —
+no other row in the table is built.
+
+Kept below for the record: the full design space this plan laid out before the decision, so the
+rejected alternatives' tradeoffs stay documented.
 
 The three named options decompose into two independent axes:
 
@@ -235,16 +237,11 @@ re-derive them later):
   practice given spec.md's real-world scenario is a single short call, not a long queue of waiting
   viewers.
 
-**This plan's recommendation for how to proceed, not a decision**: this choice should go back
-through the normal `designer-lite` → (QA.md entry if it's genuinely user-facing, which it is) →
-user-confirmation path before §5/§6 below are implemented, since it is a product-facing UX choice
-(what the second family member sees), not something derivable from already-confirmed spec text.
-§3's groundwork can be implemented and merged independently of this decision (it is a strict
-correctness fix either way); §5/§6 should wait.
+**Resolved** — see the heading above; §5/§6 are unblocked.
 
-## 5. Wire Protocol: `SESSION_BUSY` (only needed for the "explicit notice" branches of §4)
+## 5. Wire Protocol: `SESSION_BUSY`
 
-If either "explicit" row in §4's table is chosen:
+The "explicit + give up" row above was chosen, so:
 
 - `net/MessageType.kt`: add `SESSION_BUSY(12)` (next free tag after `INPUT_KEY(11)`, before the
   pairing-time-only `PAIRING_HELLO(100)`/`PAIRING_ACK(101)` block).
