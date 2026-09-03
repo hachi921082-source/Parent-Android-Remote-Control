@@ -52,6 +52,7 @@
 - Pairing is stored as a list of pairs (not a fixed 1:1 relationship), to support multiple parent devices (e.g. both mother's and father's phones paired to the same child device).
 - One-time setup of each pairing is performed by the child.
 - Each pairing entry's label can be renamed by the child at any time after creation, independent of the underlying pairing itself.
+- At most one live viewer/controller session may be active with a given parent device at a time, even if that parent is paired with more than one client device. A client attempting to connect while a session is already active is not accepted as a second, independent, concurrent peer. See `docs/DECISIONS.md` #24.
 
 ## 6. Platform / Tech Constraints
 
