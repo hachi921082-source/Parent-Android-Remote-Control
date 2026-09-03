@@ -1,0 +1,19 @@
+<UserControl x:Class="FamilyRemote.PcClient.Session.DisconnectedView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:res="clr-namespace:FamilyRemote.PcClient.Resources">
+    <!--
+        Terminal Disconnected screen (docs/plans/pc-client/connection-state-ui/PLAN.md §7): one
+        generic message (no cause-specific branch, mirrors the Android DisconnectedScreen's wording
+        pattern) plus a single "Back to pairing list" action -> Idle/pairing-selection. Replaces
+        whatever was in LiveView entirely (unlike ReconnectingBanner, this is not additive).
+    -->
+    <Grid Margin="24">
+        <StackPanel MaxWidth="360" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <TextBlock x:Name="DisconnectedText" TextWrapping="Wrap" HorizontalAlignment="Center"
+                       Margin="0,0,0,16" />
+            <Button x:Name="BackButton" Content="{x:Static res:Strings.SessionDisconnectedBack}"
+                    HorizontalAlignment="Center" Padding="16,4" Click="OnBackClick" />
+        </StackPanel>
+    </Grid>
+</UserControl>
