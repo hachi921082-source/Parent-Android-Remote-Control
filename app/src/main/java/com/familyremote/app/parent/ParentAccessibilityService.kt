@@ -3,15 +3,18 @@ package com.familyremote.app.parent
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.GestureDescription
 import android.graphics.Path
+import android.os.Build
 import android.os.Bundle
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import com.familyremote.app.common.AccessibilityPermissionMonitor
+import com.familyremote.app.net.InputKeyPayload
 import com.familyremote.app.net.InputSwipePayload
 import com.familyremote.app.net.InputTapPayload
 import com.familyremote.app.net.InputTextPayload
 import com.familyremote.app.net.MessageFrame
 import com.familyremote.app.net.MessageType
+import com.familyremote.app.net.RelayKey
 import com.familyremote.app.net.TextInjectFailedPayload
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -56,6 +59,7 @@ class ParentAccessibilityService : AccessibilityService() {
                 MessageType.INPUT_TAP -> handleTap(InputTapPayload.parse(frame.payloadAsUtf8String()))
                 MessageType.INPUT_SWIPE -> handleSwipe(InputSwipePayload.parse(frame.payloadAsUtf8String()))
                 MessageType.INPUT_TEXT -> handleText(InputTextPayload.parse(frame.payloadAsUtf8String()))
+                MessageType.INPUT_KEY -> handleKey(InputKeyPayload.parse(frame.payloadAsUtf8String()))
                 else -> Unit // Not this service's concern.
             }
         }
@@ -106,6 +110,124 @@ class ParentAccessibilityService : AccessibilityService() {
         focused.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, bundle)
         // Clipboard is never read or written anywhere in this path (Decision #9) -- no
         // ClipboardManager usage exists in this class at all, by construction.
+    }
+
+    /**
+     * `INPUT_KEY` handler (docs/plans/pc-key-relay-support/PLAN.md §3/§4): injects the nine
+     * relayed keys into the parent's currently-focused screen element, using only documented,
+     * public `AccessibilityNodeInfo`/`AccessibilityService` APIs -- `AccessibilityService` has no
+     * true key-event injection API.
+     */
+    private fun handleKey(payload: InputKeyPayload) {
+        if (!AccessibilityPermissionMonitor.isGranted(this)) return
+
+        if (payload.key == RelayKey.ESCAPE) {
+            // Not node/focus-scoped -- always available, per detailed-spec §11.
+            performGlobalAction(GLOBAL_ACTION_BACK)
+            return
+        }
+
+        val focused = rootInActiveWindow?.findFocus(AccessibilityNodeInfo.FOCUS_INPUT) ?: return
+        when (payload.key) {
+            RelayKey.ARROW_LEFT -> moveCursor(focused, forward = false, granularity = AccessibilityNodeInfo.MOVEMENT_GRANULARITY_CHARACTER)
+            RelayKey.ARROW_RIGHT -> moveCursor(focused, forward = true, granularity = AccessibilityNodeInfo.MOVEMENT_GRANULARITY_CHARACTER)
+            RelayKey.ARROW_UP -> moveCursor(focused, forward = false, granularity = AccessibilityNodeInfo.MOVEMENT_GRANULARITY_LINE)
+            RelayKey.ARROW_DOWN -> moveCursor(focused, forward = true, granularity = AccessibilityNodeInfo.MOVEMENT_GRANULARITY_LINE)
+            RelayKey.BACKSPACE -> deleteAdjacentCharacter(focused, beforeCursor = true)
+            RelayKey.DELETE -> deleteAdjacentCharacter(focused, beforeCursor = false)
+            RelayKey.ENTER -> injectEnter(focused)
+            RelayKey.TAB -> focusNextEditableNode(focused)
+            RelayKey.ESCAPE -> Unit // handled above
+        }
+    }
+
+    /** Arrow keys: uses the standard "granular text navigation" action set (the same mechanism
+     * TalkBack uses to move a live cursor character/line at a time within a focused editable node),
+     * not text reconstruction -- moves the node's actual text selection when the node supports the
+     * requested granularity. */
+    private fun moveCursor(node: AccessibilityNodeInfo, forward: Boolean, granularity: Int) {
+        if (node.movementGranularities and granularity == 0) return // node doesn't support it -- silent no-op
+        val action = if (forward) AccessibilityNodeInfo.ACTION_NEXT_AT_MOVEMENT_GRANULARITY
+                     else AccessibilityNodeInfo.ACTION_PREVIOUS_AT_MOVEMENT_GRANULARITY
+        val args = Bundle().apply {
+            putInt(AccessibilityNodeInfo.ACTION_ARGUMENT_MOVEMENT_GRANULARITY_INT, granularity)
+            putBoolean(AccessibilityNodeInfo.ACTION_ARGUMENT_EXTEND_SELECTION_BOOLEAN, false)
+        }
+        node.performAction(action, args)
+    }
+
+    /** Backspace/Delete: no direct "delete one character" action exists, so this reconstructs the
+     * text -- read the current string + cursor position, remove one character before/after it, then
+     * ACTION_SET_TEXT the new string and ACTION_SET_SELECTION to restore the cursor at the edit
+     * point. Only fires when the cursor is a single collapsed position or a selection is present (a
+     * present selection is simply removed instead, matching ordinary text-editor Backspace/Delete
+     * behavior with an active selection). */
+    private fun deleteAdjacentCharacter(node: AccessibilityNodeInfo, beforeCursor: Boolean) {
+        val text = node.text?.toString() ?: return
+        val start = node.textSelectionStart.takeIf { it >= 0 } ?: return
+        val end = node.textSelectionEnd.takeIf { it >= 0 } ?: return
+        val (newText, newCursor) = if (start != end) {
+            // Active selection -- Backspace/Delete both just remove it.
+            (text.removeRange(minOf(start, end), maxOf(start, end))) to minOf(start, end)
+        } else if (beforeCursor) {
+            if (start == 0) return
+            (text.removeRange(start - 1, start)) to (start - 1)
+        } else {
+            if (start >= text.length) return
+            (text.removeRange(start, start + 1)) to start
+        }
+        setTextAndSelection(node, newText, newCursor)
+    }
+
+    /** Enter: prefers the platform's own IME-enter action (API 30+, ACTION_IME_ENTER -- semantically
+     * correct for single-line fields with a "search"/"send"/"go" IME action, since it triggers
+     * whatever that field's actual editor action is, not just a literal newline). Falls back to
+     * inserting a literal newline via the same text-reconstruction approach as Backspace/Delete on
+     * older API levels, which is correct for genuinely multi-line fields but will not trigger a
+     * single-line field's submit semantics there -- an accepted, platform-version-driven limitation,
+     * not a design gap (this app's min SDK is 26, ACTION_IME_ENTER requires 30). */
+    private fun injectEnter(node: AccessibilityNodeInfo) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
+            node.actionList.any { it.id == AccessibilityNodeInfo.AccessibilityAction.ACTION_IME_ENTER.id }) {
+            node.performAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_IME_ENTER.id)
+            return
+        }
+        val text = node.text?.toString() ?: return
+        val start = node.textSelectionStart.takeIf { it >= 0 } ?: text.length
+        val newText = text.substring(0, start) + "\n" + text.substring(start)
+        setTextAndSelection(node, newText, start + 1)
+    }
+
+    /** Tab: best-effort move of actual input focus (not just accessibility/TalkBack focus) to the
+     * next focusable node in the active window's traversal order. Android's AccessibilityService API
+     * has no built-in "next focusable field" action, so this walks rootInActiveWindow's node tree in
+     * depth-first order collecting isFocusable() nodes, finds the currently-focused node's position
+     * in that list, and calls ACTION_FOCUS on the next one. Silently no-ops if no next focusable node
+     * is found (last field on screen) or if the active window exposes no addressable tree -- an
+     * accepted best-effort limitation given the platform provides no direct API for this. */
+    private fun focusNextEditableNode(current: AccessibilityNodeInfo) {
+        val root = rootInActiveWindow ?: return
+        val focusable = mutableListOf<AccessibilityNodeInfo>()
+        fun collect(node: AccessibilityNodeInfo) {
+            if (node.isFocusable) focusable.add(node)
+            for (i in 0 until node.childCount) node.getChild(i)?.let(::collect)
+        }
+        collect(root)
+        val currentIndex = focusable.indexOfFirst { it.viewIdResourceName == current.viewIdResourceName && it.text == current.text }
+        if (currentIndex == -1 || currentIndex + 1 >= focusable.size) return
+        focusable[currentIndex + 1].performAction(AccessibilityNodeInfo.ACTION_FOCUS)
+    }
+
+    private fun setTextAndSelection(node: AccessibilityNodeInfo, newText: String, cursor: Int) {
+        val setTextArgs = Bundle().apply {
+            putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, newText)
+        }
+        node.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, setTextArgs)
+        val selectionArgs = Bundle().apply {
+            putInt(AccessibilityNodeInfo.ACTION_ARGUMENT_SELECTION_START_INT, cursor)
+            putInt(AccessibilityNodeInfo.ACTION_ARGUMENT_SELECTION_END_INT, cursor)
+        }
+        node.performAction(AccessibilityNodeInfo.ACTION_SET_SELECTION, selectionArgs)
     }
 
     companion object {
