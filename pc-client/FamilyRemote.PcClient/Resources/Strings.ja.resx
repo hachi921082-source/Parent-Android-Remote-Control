@@ -120,4 +120,64 @@
   <data name="AppTitle" xml:space="preserve">
     <value>ファミリーリモート</value>
   </data>
+  <data name="ManualPairingHostLabel" xml:space="preserve">
+    <value>ホストアドレス</value>
+  </data>
+  <data name="ManualPairingCodeLabel" xml:space="preserve">
+    <value>ペアリングコード</value>
+  </data>
+  <data name="ManualPairingButton" xml:space="preserve">
+    <value>ペアリング</value>
+  </data>
+  <data name="ManualPairingConnecting" xml:space="preserve">
+    <value>接続中…</value>
+  </data>
+  <data name="ManualPairingErrorGeneric" xml:space="preserve">
+    <value>ペアリングできませんでした。ホストアドレスとコードを確認し、もう一度お試しください。</value>
+  </data>
+  <data name="ManualPairingTailscaleMissing" xml:space="preserve">
+    <value>このPCでTailscaleが検出されませんでした。先にTailscaleをインストールしてサインインしてください。</value>
+  </data>
+  <data name="LabelPromptTitle" xml:space="preserve">
+    <value>このデバイスに名前を付ける</value>
+  </data>
+  <data name="LabelPromptDefault" xml:space="preserve">
+    <value>親</value>
+  </data>
+  <data name="LabelPromptSaveButton" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="PairingListTitle" xml:space="preserve">
+    <value>ペアリング済みデバイス</value>
+  </data>
+  <data name="PairingListEmpty" xml:space="preserve">
+    <value>ペアリング済みデバイスはまだありません。</value>
+  </data>
+  <data name="PairingListAddNew" xml:space="preserve">
+    <value>新しいペアリングを追加</value>
+  </data>
+  <data name="PairingListRename" xml:space="preserve">
+    <value>名前を変更</value>
+  </data>
+  <data name="PairingListDelete" xml:space="preserve">
+    <value>削除</value>
+  </data>
+  <data name="PairingRenameDialogTitle" xml:space="preserve">
+    <value>デバイス名を変更</value>
+  </data>
+  <data name="PairingDeleteDialogTitle" xml:space="preserve">
+    <value>ペアリングを削除</value>
+  </data>
+  <data name="PairingDeleteDialogMessage" xml:space="preserve">
+    <value>このペアリング済みデバイスを削除しますか？後で再度ペアリングできます。</value>
+  </data>
+  <data name="ActionOk" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="ActionCancel" xml:space="preserve">
+    <value>キャンセル</value>
+  </data>
+  <data name="ActionDelete" xml:space="preserve">
+    <value>削除</value>
+  </data>
 </root>
