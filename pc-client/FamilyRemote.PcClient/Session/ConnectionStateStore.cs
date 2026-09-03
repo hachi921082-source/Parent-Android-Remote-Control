@@ -16,12 +16,14 @@ namespace FamilyRemote.PcClient.Session;
 /// 実行する（<see cref="RunOnUiThread"/>）。MainWindow等のUIコードから直接呼ばれる公開メソッド
 /// （<see cref="StartWaiting"/>等）はUIスレッド上で呼ばれる前提のため、追加のマーシャリングをしない。
 ///
-/// 再入防止（GitHub issue #15）に関する呼び出しパターンのメモ: <see cref="PcSessionListener.Start"/>
-/// を呼ぶのは(1)<see cref="StartWaiting"/>、(2)<see cref="RetryWaiting"/>（直前の試行が
-/// onFailedで既に完了している場合のみ到達可能）、(3)Reconnecting再武装（直前の試行がonConnectedで
-/// 既に完了し、Liveへ遷移済みの場合のみ到達可能）の3箇所のみ -- いずれも「直前のAcceptLoopタスクが
-/// 既に終了している」ことが呼び出し条件として保証された経路であり、稼働中のAcceptLoopに対して
-/// 二重にStart()を呼ぶことはない。
+/// 再入防止（GitHub issue #15）に関するメモ: 以前はここで「呼び出しパターン上、稼働中のAcceptLoopに
+/// 対して二重にStart()を呼ぶことはない」という主張をしていたが、実際にはRetryボタンの連打
+/// （<see cref="RetryWaiting"/>の唯一のガードは<c>State is WaitingForParent</c>であり、これは
+/// 試行が進行中でも真のまま）やペアリング行の連打（<see cref="StartWaiting"/>も同様に無ガード）で
+/// 崩れることが判明した。現在は<see cref="PcSessionListener.Start"/>自身が
+/// 稼働中のAcceptLoopに対する二重起動をInterlockedガードで防いでおり（全呼び出し経路をまとめて
+/// 保護する）、加えて<see cref="OnReconnectingDetected"/>側でも既にReconnecting中なら
+/// 二度目のArm()を呼ばないようガードしている。
 /// </summary>
 public sealed class ConnectionStateStore
 {
@@ -151,22 +153,29 @@ public sealed class ConnectionStateStore
     /// <summary>
     /// 3回分のハートビート欠落を検知したときの遷移（PLAN.md §7）。Live/Reconnecting以外からは
     /// 到達しない想定（既にDisconnected/Idleへ抜けていればHeartbeatWatchdogは停止済みのため）。
+    /// 既にReconnecting中であれば何もしない（GitHub issue #15 追加ガード） --
+    /// <see cref="HeartbeatWatchdog"/>は別スレッドから呼ばれる複数の経路（周期チェックと
+    /// <c>NotifyConnectionLost</c>）を持つため、同期化なしでは短時間に連続してこの通知が
+    /// 発火し得る。二度目の呼び出しでArm()を再実行すると<see cref="PcSessionListener.Start"/>を
+    /// 呼び直すことになってしまう（同メソッド自身のガードで実害はないが、ここでも二重に武装
+    /// しようとしないほうが意図が明確）。
     /// </summary>
     private void OnReconnectingDetected(PcPairingEntry pairing)
     {
-        if (State is not (ConnectionState.Live or ConnectionState.Reconnecting))
+        if (State is ConnectionState.Reconnecting)
         {
             return;
         }
 
-        if (State is not ConnectionState.Reconnecting)
+        if (State is not ConnectionState.Live)
         {
-            SetState(new ConnectionState.Reconnecting(pairing, DateTimeOffset.UtcNow));
+            return;
         }
 
+        SetState(new ConnectionState.Reconnecting(pairing, DateTimeOffset.UtcNow));
+
         // 受け付けループを再武装する -- リスナー自体は開いたまま
-        // （video-and-session/connectivity.PLAN.md §4 step 4）。直前のAcceptLoopタスクは
-        // 最初にonConnectedを1回呼んだ時点で既に終了しているため、二重起動にはならない。
+        // （video-and-session/connectivity.PLAN.md §4 step 4）。
         Arm(pairing);
     }
 
