@@ -6,18 +6,18 @@ import android.os.Bundle
 import android.provider.Settings
 import androidx.appcompat.app.AppCompatActivity
 import com.familyremote.app.R
+import com.familyremote.app.common.AccessibilityPermissionMonitor
 import com.familyremote.app.databinding.ActivityAccessibilityOnboardingBinding
 
 /**
  * Onboarding step 2 (detailed-spec §13): guided screen shown when the parent-mode tab is opened
  * without the Accessibility Service permission granted. See PLAN.md §5.
  *
- * Non-blocking by design: Remote Input Control (Tier 2), which is what actually *uses* this
- * permission, is not implemented yet, so there is currently nothing for the OS Settings screen to
- * even offer enabling (no accessibility-service component is declared by this app in this tier).
- * Forcing a hard block here would make onboarding for this feature alone impossible to complete.
- * The "Continue" button is therefore always enabled; only the status text reflects whether the
- * permission happens to already be granted.
+ * Non-blocking by design: even though `ParentAccessibilityService` now exists
+ * (docs/plans/remote-input-control/PLAN.md §6), forcing a hard block on this screen would still
+ * make onboarding stuck-able for a parent who, for whatever reason, can't complete the OS
+ * Settings step immediately. The "Continue" button is therefore always enabled; only the status
+ * text reflects whether the permission happens to already be granted.
  */
 class AccessibilityOnboardingActivity : AppCompatActivity() {
 
@@ -43,7 +43,7 @@ class AccessibilityOnboardingActivity : AppCompatActivity() {
     }
 
     private fun updateStatus() {
-        val granted = AccessibilityPermissionCheck.isAnyAccessibilityServiceEnabledForThisApp(this)
+        val granted = AccessibilityPermissionMonitor.isGranted(this)
         binding.statusText.setText(
             if (granted) {
                 R.string.accessibility_onboarding_status_granted
