@@ -7,7 +7,7 @@ import android.os.Bundle
 import android.provider.Settings
 import androidx.appcompat.app.AppCompatActivity
 import com.familyremote.app.R
-import com.familyremote.app.common.applyNavigationBarBottomInsetPadding
+import com.familyremote.app.common.applyNavigationBarBottomInsetMargin
 import com.familyremote.app.common.applyStatusBarTopInsetPadding
 import com.familyremote.app.databinding.ActivityMyosSetupChecklistBinding
 
@@ -29,7 +29,7 @@ class MyOsSetupChecklistActivity : AppCompatActivity() {
         binding = ActivityMyosSetupChecklistBinding.inflate(layoutInflater)
         setContentView(binding.root)
         binding.root.applyStatusBarTopInsetPadding()
-        binding.continueButton.applyNavigationBarBottomInsetPadding()
+        binding.continueButton.applyNavigationBarBottomInsetMargin()
 
         binding.introText.setText(
             if (isRecognizedDevice) R.string.myos_checklist_intro_specific else R.string.myos_checklist_intro_generic
