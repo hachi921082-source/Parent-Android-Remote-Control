@@ -11,12 +11,12 @@ import com.familyremote.app.common.AccessibilityPermissionMonitor
 
 /**
  * Orchestrates onboarding steps 2->4 (detailed-spec §13), which are all performed physically
- * on the parent device -- see PLAN.md §5. Step 2 (accessibility + battery setup, merged into one
- * screen per issue #27) is skipped on re-entry once both are already granted -- both are now
- * directly, live-checkable, so no separate "acknowledged" flag is needed; step 4 (pairing
- * exchange) always runs since each new pairing needs a fresh handshake. Step 5 (label assignment)
- * is the child device's counterpart, handled separately by [ChildPairingScanActivity] /
- * [PairingLabelPromptActivity].
+ * on the parent device -- see PLAN.md §5. Step 2 (accessibility + battery + Tailscale setup, all
+ * merged into one screen per issues #27/#28) is skipped on re-entry once all three are already
+ * granted/connected -- all three are directly, live-checkable, so no separate "acknowledged" flag
+ * is needed; step 4 (pairing exchange) always runs since each new pairing needs a fresh handshake.
+ * Step 5 (label assignment) is the child device's counterpart, handled separately by
+ * [ChildPairingScanActivity] / [PairingLabelPromptActivity].
  */
 class OnboardingWizardActivity : AppCompatActivity() {
 
@@ -43,7 +43,10 @@ class OnboardingWizardActivity : AppCompatActivity() {
     private fun runCurrentStep() {
         when (currentStep) {
             Step.SETUP -> {
-                if (AccessibilityPermissionMonitor.isGranted(this) && isIgnoringBatteryOptimizations()) {
+                val ready = AccessibilityPermissionMonitor.isGranted(this) &&
+                    isIgnoringBatteryOptimizations() &&
+                    TailscaleAddressResolver.resolve() != null
+                if (ready) {
                     advanceToNextStep()
                 } else {
                     stepLauncher.launch(Intent(this, AccessibilityOnboardingActivity::class.java))

@@ -39,7 +39,7 @@
     <string name="accessibility_service_description">リモートサポート中に、ペアリングした子デバイスがこの端末をタップ・スワイプ・文字入力できるようにします。</string>
 
     <!-- Accessibility onboarding -->
-    <string name="accessibility_onboarding_title">ユーザー補助サービスを有効にする</string>
+    <string name="accessibility_onboarding_title">初期設定</string>
     <string name="accessibility_onboarding_open_settings">ユーザー補助の設定を開く</string>
     <string name="accessibility_onboarding_status_granted">状態：有効</string>
     <string name="accessibility_onboarding_status_not_granted">状態：まだ有効になっていません</string>
@@ -58,9 +58,12 @@
     <string name="parent_pairing_manual_code_label">手動入力コード：%1$s</string>
     <string name="parent_pairing_waiting">子デバイスがこのコードを読み取るのを待っています…</string>
     <string name="parent_pairing_success">ペアリングが完了しました！</string>
-    <string name="parent_pairing_tailscale_missing">「インストール」を押して、Tailscaleアプリをインストールしてください。インストールできたら「開く」を押してアプリを開き、家族のtailnetにサインインしてから、この画面に戻って「再試行」を押してください。</string>
-    <string name="parent_pairing_install_tailscale">インストール</string>
-    <string name="parent_pairing_open_tailscale">開く</string>
+    <string name="parent_pairing_tailscale_missing">Tailscaleが接続されていません。「初期設定」に戻って確認してください。</string>
+    <string name="parent_pairing_tailscale_section_title">Tailscaleの設定</string>
+    <string name="parent_pairing_install_tailscale">Tailscaleインストール</string>
+    <string name="parent_pairing_open_tailscale">Tailscaleを開く</string>
+    <string name="parent_pairing_tailscale_status_connected">状態：Tailscaleに接続されています</string>
+    <string name="parent_pairing_tailscale_status_not_connected">状態：まだ接続されていません</string>
     <string name="parent_pairing_error_timeout">ペアリングがタイムアウトしました。もう一度お試しください。</string>
     <string name="parent_pairing_error_generic">ペアリングに失敗しました：%1$s</string>
 
