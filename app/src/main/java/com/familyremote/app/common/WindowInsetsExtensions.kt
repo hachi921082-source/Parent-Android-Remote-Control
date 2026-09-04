@@ -1,6 +1,7 @@
 package com.familyremote.app.common
 
 import android.view.View
+import android.view.ViewGroup
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
@@ -21,16 +22,20 @@ fun View.applyStatusBarTopInsetPadding() {
 }
 
 /**
- * Adds the system navigation bar's bottom inset to [this] view's existing bottom padding, so a
- * bottom-pinned action button isn't crowded by (or drawn under) the nav bar on API 35+ edge-to-edge
- * (issue #21 follow-up). Apply to the specific bottom-pinned view, not the screen's scrollable root
- * -- combine with [applyStatusBarTopInsetPadding] on the same view only via a single listener call.
+ * Adds the system navigation bar's bottom inset to [this] view's existing bottom *margin* (not
+ * padding -- padding would grow the view's own drawn bounds, e.g. visibly inflating a button's
+ * background box; margin only repositions it), so a bottom-pinned action button isn't crowded by
+ * (or drawn under) the nav bar on API 35+ edge-to-edge (issue #21 follow-up). Requires the view to
+ * already have [ViewGroup.MarginLayoutParams] (e.g. a direct LinearLayout child).
  */
-fun View.applyNavigationBarBottomInsetPadding() {
-    val basePaddingBottom = paddingBottom
+fun View.applyNavigationBarBottomInsetMargin() {
+    val params = layoutParams as ViewGroup.MarginLayoutParams
+    val baseMarginBottom = params.bottomMargin
     ViewCompat.setOnApplyWindowInsetsListener(this) { view, insets ->
         val systemBarsInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-        view.updatePadding(bottom = basePaddingBottom + systemBarsInsets.bottom)
+        val marginParams = view.layoutParams as ViewGroup.MarginLayoutParams
+        marginParams.bottomMargin = baseMarginBottom + systemBarsInsets.bottom
+        view.layoutParams = marginParams
         insets
     }
 }
