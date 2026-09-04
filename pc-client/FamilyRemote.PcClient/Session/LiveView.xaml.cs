@@ -1,17 +1,20 @@
 using System.Windows.Controls;
 using FamilyRemote.PcClient.Input;
 using FamilyRemote.PcClient.Net;
+using FamilyRemote.PcClient.Zoom;
 
 namespace FamilyRemote.PcClient.Session;
 
 /// <summary>
 /// LiveView.xamlのコードビハインド。docs/plans/pc-client/connection-state-ui/PLAN.md §6/§7、
-/// video-and-session/decode.PLAN.md §2、input-relay/PLAN.md §2/§3/§7/§8参照。
+/// video-and-session/decode.PLAN.md §2、zoom-magnifier/PLAN.md §6、input-relay/PLAN.md §2/§3/§7/§8参照。
 /// <see cref="ParentStatusPanel"/>の更新と<see cref="ReconnectingBanner"/>の表示切り替え
-/// （connection-state-ui）、<see cref="Video"/>を<c>store.Decoder</c>へ結びつける（decode）ことに加え、
+/// （connection-state-ui）、<see cref="Video"/>を<c>store.Decoder</c>へ結びつける（decode）、
+/// <see cref="Video"/>に対する<see cref="ZoomController"/>の構築・結線（zoom-magnifier）に加え、
 /// <see cref="PointerInputController"/>/<see cref="InputAvailabilityState"/>の構築・<see cref="Overlay"/>
 /// （タップ/スワイプマーカー+ビューオンリーバナー）・<see cref="TextBar"/>（テキスト入力）の有効化を
-/// 一括して担う（input-relay）。
+/// 一括して担う（input-relay）。zoom-magnifier/input-relayはいずれもTier 6として並行実装されたが、
+/// 両者ともVideo/VideoView.xaml(.cs)自体は一切編集していない（VideoViewの公開surfaceのみを使用）。
 /// </summary>
 public partial class LiveView : UserControl
 {
@@ -27,6 +30,16 @@ public partial class LiveView : UserControl
         // （LiveViewが構築されるのはConnectionStateがLiveへ遷移した後のみのため -- decode.PLAN.md
         // §4 step 1、Session/ConnectionStateStore.csのDecoderプロパティのコメント参照）。
         Video.Attach(store.Decoder!);
+
+        // ZoomControllerはVideoインスタンスと1:1でこのコンストラクタ内でのみ生成する -- LiveView自体が
+        // Live<->Reconnecting往復では再構築されない（MainWindow.xaml.csの_liveView/EnsureLiveView()
+        // 参照）ため、新規Live突入毎に必ず新しいZoomController（=新しいZoomState、Level=1.0）が
+        // 作られることになり、zoom-magnifier PLAN.md §6が要求する「新規Live突入毎にリセット」を
+        // 追加のリセットロジックなしに満たす。Level>1で拡大されたFrameImageがVideoView自身の境界を
+        // はみ出す挙動がTextInputSlot側まで描画されないのはWPFのGrid arrangeが標準で行う自動レイアウト
+        // クリップによるものであり、Video自身へClipToBounds等を明示設定する必要はない
+        // （詳細はZoomedContentRectCalculatorのコメント参照）。
+        _ = new ZoomController(Video);
 
         // store.Channelも同じ理由でこの時点で既に非null（ConnectionStateStore.Channelのコメント
         // 参照）-- AccessibilityStatus/TextInjectFailedのハンドラをここで直接登録できる
