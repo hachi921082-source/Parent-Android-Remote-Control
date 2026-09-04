@@ -1,7 +1,9 @@
 package com.familyremote.app.parent
 
 import android.app.Activity
+import android.media.projection.MediaProjectionConfig
 import android.media.projection.MediaProjectionManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -42,6 +44,15 @@ class ShareStartTrampolineActivity : AppCompatActivity() {
         }
 
         val projectionManager = getSystemService(MediaProjectionManager::class.java)
-        requestProjection.launch(projectionManager.createScreenCaptureIntent())
+        // Force whole-screen-only capture, skipping the OS's per-app share choice entirely
+        // (GitHub issue #20) -- MediaProjectionConfig.createConfigForDefaultDisplay() requires
+        // API 34+; below that, the OS dialog's app-vs-screen choice (where it exists at all) has
+        // no app-level override, so the plain overload is the only option there.
+        val captureIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            projectionManager.createScreenCaptureIntent(MediaProjectionConfig.createConfigForDefaultDisplay())
+        } else {
+            projectionManager.createScreenCaptureIntent()
+        }
+        requestProjection.launch(captureIntent)
     }
 }
