@@ -15,6 +15,11 @@ namespace FamilyRemote.PcClient.Session;
 /// （タップ/スワイプマーカー+ビューオンリーバナー）・<see cref="TextBar"/>（テキスト入力）の有効化を
 /// 一括して担う（input-relay）。zoom-magnifier/input-relayはいずれもTier 6として並行実装されたが、
 /// 両者ともVideo/VideoView.xaml(.cs)自体は一切編集していない（VideoViewの公開surfaceのみを使用）。
+/// <see cref="KeyRelayController"/>の構築（<see cref="PointerInputController"/>と同じ
+/// isInputAllowed/sendFrame delegateパターン）と、初回表示時の<see cref="Video"/>.Focus()呼び出しは
+/// Tier 7（physical-key-relay-pc-side）で追加-- このtierはVideo/VideoView.xaml(.cs)へ
+/// Focusable="True"を追加する（PLAN.md §3、Tier 6の並行worktree制約はTier 6のマージ後は
+/// 引き継がれない）。
 /// </summary>
 public partial class LiveView : UserControl
 {
@@ -56,6 +61,13 @@ public partial class LiveView : UserControl
             currentGeometry: () => _store.Decoder?.CurrentGeometry);
         pointerInput.ValidGesture += points => Overlay.ShowMarker(points);
 
+        // KeyRelayControllerもPointerInputControllerと同じ共有ゲート(IsInputAllowed)/送信経路を使う
+        // -- 独自のInputAvailabilityStateは持たない（physical-key-relay-pc-side/PLAN.md §6）。
+        _ = new KeyRelayController(
+            Video,
+            isInputAllowed: IsInputAllowed,
+            sendFrame: frame => _store.Channel?.SendFrame(frame) ?? false);
+
         TextBar.Attach(frame => _store.Channel?.SendFrame(frame) ?? false);
 
         StatusPanel.Render(store.LatestStatus);
@@ -66,6 +78,11 @@ public partial class LiveView : UserControl
         {
             _store.StateChanged += OnStateChanged;
             _store.StatusUpdated += OnStatusUpdated;
+
+            // VideoViewへ最初のキーボードフォーカスを与える -- 以後はマウスクリック/Tab等の
+            // 通常のWPFフォーカス機構に任せる（physical-key-relay-pc-side/PLAN.md §3、
+            // KeyRelayController.PreviewKeyDownが実際に発火するための前提）。
+            Video.Focus();
         };
         Unloaded += (_, _) =>
         {
