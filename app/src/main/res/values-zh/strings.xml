@@ -40,7 +40,7 @@
 
     <!-- Accessibility onboarding -->
     <string name="accessibility_onboarding_title">启用无障碍服务</string>
-    <string name="accessibility_onboarding_explanation">为了让子女设备在远程协助期间可以在本设备上点按、滑动和输入文字，需要启用无障碍服务权限。此设置只需完成一次。</string>
+    <string name="accessibility_onboarding_explanation">在支持期间，需要授权以便对方操作此设备。\n点击下方按钮后，找到并点按"家庭远程助手"，将顶部的"使用家庭远程助手"开启并允许。</string>
     <string name="accessibility_onboarding_open_settings">打开无障碍设置</string>
     <string name="accessibility_onboarding_status_granted">状态：已启用</string>
     <string name="accessibility_onboarding_status_not_granted">状态：尚未启用</string>
@@ -60,7 +60,7 @@
     <string name="parent_pairing_manual_code_label">手动配对码：%1$s</string>
     <string name="parent_pairing_waiting">正在等待子女设备扫描此二维码…</string>
     <string name="parent_pairing_success">配对成功！</string>
-    <string name="parent_pairing_tailscale_missing">未在此设备上检测到 Tailscale。请安装 Tailscale 应用并登录家庭 tailnet，然后重试。</string>
+    <string name="parent_pairing_tailscale_missing">请点击"打开 Tailscale"来安装 Tailscale 应用。安装完成后，打开该应用并登录家庭 tailnet，然后返回此界面点击"重试"。</string>
     <string name="parent_pairing_open_tailscale">打开 Tailscale</string>
     <string name="parent_pairing_error_timeout">配对超时，请重试。</string>
     <string name="parent_pairing_error_generic">配对失败：%1$s</string>
