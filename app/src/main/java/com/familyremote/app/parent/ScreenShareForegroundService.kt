@@ -26,6 +26,7 @@ import com.familyremote.app.common.Constants
 import com.familyremote.app.net.AccessibilityStatusPayload
 import com.familyremote.app.net.MessageFrame
 import com.familyremote.app.net.MessageType
+import com.familyremote.app.net.SessionBusyPayload
 import com.familyremote.app.net.StatusPayload
 import com.familyremote.app.net.VideoFrameMessage
 import com.familyremote.app.pairing.AuthorizedChild
@@ -87,7 +88,20 @@ class ScreenShareForegroundService : Service() {
 
     private val sessionServersByChild = mutableMapOf<UUID, ParentSessionServer>()
     private var expectedChildCount = 0
-    private var endedChildCount = 0
+
+    /**
+     * Single-session-enforcement arbitration (docs/plans/single-session-enforcement/PLAN.md §3.1):
+     * [activeChildId] is the one child/PC client currently holding the Live slot, if any.
+     * [arbitrationLock] guards it -- serviceScope runs on Dispatchers.Default, so the per-child
+     * coroutines in [runSessionLoop] genuinely race across threads, not just across suspension
+     * points, when their concurrent `connect()` calls succeed close together.
+     */
+    private val arbitrationLock = Any()
+    private var activeChildId: UUID? = null
+
+    /** Replaces the old flat `endedChildCount` counter (PLAN.md §3.3) -- every child, win-or-lose,
+     * that has permanently given up on this sharing session (no more reconnect attempts left). */
+    private val exhaustedChildIds = mutableSetOf<UUID>()
 
     /** Last value broadcast by [startAccessibilityStatusTicker] -- `null` until the first check
      * runs, so that check's result is always sent even if it happens to read `false`. */
@@ -302,7 +316,7 @@ class ScreenShareForegroundService : Service() {
     private fun dialAuthorizedChildren() {
         val children = PairingRepository(applicationContext).getAuthorizedChildren()
         expectedChildCount = children.size
-        endedChildCount = 0
+        exhaustedChildIds.clear()
         if (children.isEmpty()) return // nothing to dial -- capture still runs, harmlessly idle.
         children.forEach { child -> serviceScope.launch { runSessionLoop(child) } }
     }
@@ -310,7 +324,10 @@ class ScreenShareForegroundService : Service() {
     /**
      * Dials [child], retrying with exponential backoff (1s, 2s, 4s... capped at 10s) for up to
      * [Constants.RECONNECT_WINDOW_MS] -- covers both the initial dial (PLAN.md §6 step 4) and a
-     * later reconnect after connection loss (PLAN.md §7 Layer 1), which share this one loop.
+     * later reconnect after connection loss (PLAN.md §7 Layer 1), which share this one loop. Once
+     * `connect()` succeeds, [tryClaimSession] arbitrates the single-session-enforcement Live slot
+     * (docs/plans/single-session-enforcement/PLAN.md §3.1) -- a losing candidate never reaches
+     * `sessionServersByChild` and is handed to [handleLosingCandidate] instead.
      */
     private suspend fun runSessionLoop(child: AuthorizedChild) {
         var backoffMs = INITIAL_BACKOFF_MS
@@ -325,12 +342,21 @@ class ScreenShareForegroundService : Service() {
             )
             val connected = server.connect(serviceScope)
             if (connected) {
-                sessionServersByChild[child.childId] = server
-                return // success -- the server's own read loop now owns this connection's lifetime.
+                if (tryClaimSession(child)) {
+                    sessionServersByChild[child.childId] = server
+                    // success -- the server's own read loop now owns this connection's lifetime.
+                } else {
+                    // Lost the arbitration race against whichever candidate already claimed the
+                    // slot (PLAN.md §4 RESOLVED: "explicit + give up") -- tell the loser, close its
+                    // throwaway socket, and give up for good; no retry-loop re-entry for the loser.
+                    handleLosingCandidate(child, server)
+                }
+                return
             }
 
             if (System.currentTimeMillis() - windowStartMs >= Constants.RECONNECT_WINDOW_MS) {
-                onChildReconnectExhausted(child)
+                // Never claimed the slot within this window -- always a non-active exhaustion.
+                onChildPermanentlyDone(child, wasActive = false)
                 return
             }
             delay(backoffMs)
@@ -338,24 +364,68 @@ class ScreenShareForegroundService : Service() {
         }
     }
 
+    /** Returns true iff [child] just won the single Live slot. Synchronous, non-suspending
+     * critical section only -- safe to call from any of the concurrently-racing per-child
+     * coroutines (docs/plans/single-session-enforcement/PLAN.md §3.1). */
+    private fun tryClaimSession(child: AuthorizedChild): Boolean = synchronized(arbitrationLock) {
+        if (activeChildId == null) {
+            activeChildId = child.childId
+            true
+        } else {
+            false
+        }
+    }
+
+    /** §4 RESOLVED ("explicit + give up", PLAN.md §5): [child] connected but lost the arbitration
+     * race. Sends `SESSION_BUSY` over the just-connected (otherwise-unused) socket, closes it, and
+     * gives up on this child for good -- no retry-loop re-entry for the loser. */
+    private suspend fun handleLosingCandidate(child: AuthorizedChild, server: ParentSessionServer) {
+        server.sendFrame(MessageFrame.of(MessageType.SESSION_BUSY, SessionBusyPayload().toJson()))
+        server.close()
+        onChildPermanentlyDone(child, wasActive = false)
+    }
+
     private fun onChildSessionEnded(child: AuthorizedChild, reason: String) {
+        val wasActive = (activeChildId == child.childId)
         sessionServersByChild.remove(child.childId)?.close()
+        if (wasActive) {
+            // Free the slot only when the ending child was the actual claimant -- a losing
+            // candidate's own throwaway socket closing (handleLosingCandidate) must never touch
+            // activeChildId (PLAN.md §3.2).
+            synchronized(arbitrationLock) { activeChildId = null }
+        }
         if (reason == "connection_lost") {
             // Layer 1 (§7): attempt to re-dial with a fresh reconnect window.
             serviceScope.launch { runSessionLoop(child) }
         } else {
             // Child intentionally ended the session (SESSION_END from the far side) -- nothing
             // left to reconnect for this child.
-            onChildReconnectExhausted(child)
+            onChildPermanentlyDone(child, wasActive)
         }
     }
 
-    private fun onChildReconnectExhausted(child: AuthorizedChild) {
-        endedChildCount++
-        if (expectedChildCount > 0 && endedChildCount >= expectedChildCount) {
-            // No child has a recoverable session left -- there is no longer an active or
-            // recoverable session (PLAN.md §8), so the whole sharing session ends.
-            stopSession("reconnect_timeout")
+    /**
+     * Renamed from the old `onChildReconnectExhausted` (docs/plans/single-session-enforcement/
+     * PLAN.md §3.3) -- [child] has no more reconnect attempts left, either because it was the
+     * active claimant giving up for good, or because it was a candidate (winner or loser) that
+     * never becomes active again. Only the active claimant exhausting stops the whole sharing
+     * session outright; a losing/never-claimed candidate exhausting only stops the session if
+     * every dialed candidate has now given up and nobody ever claimed the slot.
+     */
+    private fun onChildPermanentlyDone(child: AuthorizedChild, wasActive: Boolean) {
+        exhaustedChildIds += child.childId
+        when {
+            wasActive ->
+                // The one client that was actually Live gave up for good -- there is no longer an
+                // active or recoverable session (screen-sharing-core PLAN.md §8), so sharing ends.
+                stopSession("reconnect_timeout")
+            activeChildId == null && exhaustedChildIds.size >= expectedChildCount ->
+                // Nobody ever claimed the slot, and every dialed candidate has now given up.
+                stopSession("reconnect_timeout")
+            else ->
+                // A losing candidate gave up while someone else is genuinely Live -- not a reason
+                // to stop the session.
+                Unit
         }
     }
 
