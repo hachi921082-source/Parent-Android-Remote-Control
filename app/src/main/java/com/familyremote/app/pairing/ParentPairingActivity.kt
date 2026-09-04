@@ -33,6 +33,7 @@ class ParentPairingActivity : AppCompatActivity() {
         repository = PairingRepository(this)
 
         binding.retryButton.setOnClickListener { startPairingAttempt() }
+        binding.installTailscaleButton.setOnClickListener { openTailscalePlayStoreListing() }
         binding.openTailscaleButton.setOnClickListener { openTailscaleApp() }
         binding.doneButton.setOnClickListener {
             setResult(Activity.RESULT_OK)
@@ -49,6 +50,7 @@ class ParentPairingActivity : AppCompatActivity() {
 
     private fun startPairingAttempt() {
         binding.retryButton.visibility = View.GONE
+        binding.installTailscaleButton.visibility = View.GONE
         binding.openTailscaleButton.visibility = View.GONE
         binding.doneButton.visibility = View.GONE
         binding.qrImageView.visibility = View.GONE
@@ -58,6 +60,7 @@ class ParentPairingActivity : AppCompatActivity() {
         val parentHost = TailscaleAddressResolver.resolve()
         if (parentHost == null) {
             binding.statusText.setText(R.string.parent_pairing_tailscale_missing)
+            binding.installTailscaleButton.visibility = View.VISIBLE
             binding.openTailscaleButton.visibility = View.VISIBLE
             binding.retryButton.visibility = View.VISIBLE
             return
@@ -134,14 +137,20 @@ class ParentPairingActivity : AppCompatActivity() {
         binding.manualCodeText.visibility = View.VISIBLE
     }
 
+    private fun openTailscalePlayStoreListing() {
+        startActivity(
+            Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$TAILSCALE_PACKAGE_NAME"))
+        )
+    }
+
     private fun openTailscaleApp() {
         val launchIntent = packageManager.getLaunchIntentForPackage(TAILSCALE_PACKAGE_NAME)
         if (launchIntent != null) {
             startActivity(launchIntent)
         } else {
-            startActivity(
-                Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$TAILSCALE_PACKAGE_NAME"))
-            )
+            // Not installed yet -- same destination as installTailscaleButton, since tapping
+            // "Open" before installing is a plausible mis-click for an elderly-adjacent user.
+            openTailscalePlayStoreListing()
         }
     }
 
