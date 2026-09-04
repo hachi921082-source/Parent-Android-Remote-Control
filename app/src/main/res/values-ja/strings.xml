@@ -52,9 +52,6 @@
     <string name="myos_checklist_step_battery">このアプリのバッテリー使用を無制限に許可してください（設定 → アプリ → ファミリーリモート → バッテリー → 無制限）。</string>
     <string name="myos_checklist_step_battery_button">アプリのバッテリー設定を開く</string>
     <string name="myos_checklist_step_autostart">設定 → アプリ管理 → 自動起動管理 で「ファミリーリモート」を有効にしてください。（この端末では直接開くリンクがありません。手動で移動してください。）</string>
-    <string name="myos_checklist_checkbox_generic">理解しました</string>
-    <string name="myos_checklist_checkbox_battery">バッテリーの設定を完了しました</string>
-    <string name="myos_checklist_checkbox_autostart">自動起動の設定を完了しました</string>
 
     <!-- Parent pairing (QR display) -->
     <string name="parent_pairing_title">新しい子デバイスとペアリングする</string>
