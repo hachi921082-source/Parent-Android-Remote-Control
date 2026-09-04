@@ -10,10 +10,12 @@ import com.familyremote.app.R
 import com.familyremote.app.databinding.ActivityMyosSetupChecklistBinding
 
 /**
- * Onboarding step 3 (detailed-spec §13/§2): a manually-ticked checklist, shown once per parent
- * device -- with ZTE-Nubia-S2-specific instructions if that device is detected, otherwise a
- * generic defensive fallback. See PLAN.md §6. There is no programmatic way to verify these
- * OEM-specific settings were actually applied (purely informational/guided).
+ * Onboarding step 3 (detailed-spec §13/§2): guided instructions, shown once per parent device --
+ * with ZTE-Nubia-S2-specific instructions if that device is detected, otherwise a generic
+ * defensive fallback. See PLAN.md §6. There is no programmatic way to verify these OEM-specific
+ * settings were actually applied, so this step is purely informational/guided -- no confirmation
+ * checkbox is shown, since a checkbox that can't actually verify completion would just invite
+ * elderly users to tick it without doing the underlying step (issue #23).
  */
 class MyOsSetupChecklistActivity : AppCompatActivity() {
 
@@ -40,9 +42,6 @@ class MyOsSetupChecklistActivity : AppCompatActivity() {
 
         if (isRecognizedDevice) {
             binding.autoStartStepText.visibility = android.view.View.VISIBLE
-            binding.autoStartCheckbox.visibility = android.view.View.VISIBLE
-        } else {
-            binding.genericAckCheckbox.visibility = android.view.View.VISIBLE
         }
 
         binding.continueButton.setOnClickListener {
