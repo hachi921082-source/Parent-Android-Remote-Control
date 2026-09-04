@@ -5,4 +5,22 @@
         <item name="colorPrimaryDark">@color/purple_700</item>
         <item name="colorAccent">@color/teal_200</item>
     </style>
+
+    <!-- ShareStartTrampolineActivity (AndroidManifest.xml): an invisible/translucent trampoline
+         that only requests the MediaProjection consent dialog and never shows its own UI (see
+         ShareStartTrampolineActivity.kt's doc comment: "Never visible for more than a frame").
+         Must be a Theme.AppCompat/Theme.MaterialComponents descendant, since the activity extends
+         AppCompatActivity, which throws IllegalStateException at onPostCreate otherwise (GitHub
+         issue #19). Replaces the raw platform @android:style/Theme.Translucent.NoTitleBar that
+         previously caused that crash, reproducing the same translucent/no-title/no-animation
+         behavior via a MaterialComponents-descendant base instead. -->
+    <style name="Theme.FamilyRemote.Trampoline" parent="Theme.FamilyRemote">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowAnimationStyle">@null</item>
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
 </resources>
