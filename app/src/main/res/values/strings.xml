@@ -40,7 +40,7 @@
 
     <!-- Accessibility onboarding -->
     <string name="accessibility_onboarding_title">Enable Accessibility Service</string>
-    <string name="accessibility_onboarding_explanation">To let the child device tap, swipe, and type on this device during a remote support session, this device needs the Accessibility Service permission enabled. This is a one-time setting.</string>
+    <string name="accessibility_onboarding_explanation">Permission is needed so the other party can operate this device during support.\nFrom the button below, find Family Remote, tap it, then turn on and allow \"Use Family Remote\" at the top.</string>
     <string name="accessibility_onboarding_open_settings">Open Accessibility Settings</string>
     <string name="accessibility_onboarding_status_granted">Status: enabled</string>
     <string name="accessibility_onboarding_status_not_granted">Status: not enabled yet</string>
@@ -60,7 +60,7 @@
     <string name="parent_pairing_manual_code_label">Manual code: %1$s</string>
     <string name="parent_pairing_waiting">Waiting for the child device to scan this code…</string>
     <string name="parent_pairing_success">Paired successfully!</string>
-    <string name="parent_pairing_tailscale_missing">Tailscale not detected on this device. Please install the Tailscale app and sign in to the family tailnet, then retry.</string>
+    <string name="parent_pairing_tailscale_missing">Tap \"Open Tailscale\" to install the Tailscale app. Once installed, open it and sign in to the family tailnet, then come back here and tap \"Retry\".</string>
     <string name="parent_pairing_open_tailscale">Open Tailscale</string>
     <string name="parent_pairing_error_timeout">Pairing timed out. Please try again.</string>
     <string name="parent_pairing_error_generic">Pairing failed: %1$s</string>
