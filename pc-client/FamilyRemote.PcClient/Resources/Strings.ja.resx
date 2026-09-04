@@ -225,6 +225,9 @@
   <data name="SessionDisconnectedBack" xml:space="preserve">
     <value>ペアリング一覧に戻る</value>
   </data>
+  <data name="SessionRejectedTitle" xml:space="preserve">
+    <value>{0}には既に別の端末が接続されています。そのセッションが終了してから、もう一度お試しください。</value>
+  </data>
   <data name="VideoFlagSecureHint" xml:space="preserve">
     <value>銀行アプリやパスワード管理アプリなど、保護されたアプリが相手の端末で開かれている場合、画面が真っ黒に表示されることがあります。必ずしも接続の問題とは限りません。</value>
   </data>
