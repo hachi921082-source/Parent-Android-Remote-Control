@@ -90,6 +90,7 @@
     <string name="session_reconnecting_banner">Reconnecting…</string>
     <string name="session_disconnected_title">Connection to %1$s was lost. Ask them to try again if this continues.</string>
     <string name="session_disconnected_back">Back to device list</string>
+    <string name="session_rejected_title">Another device is already connected to %1$s. Try again once that session ends.</string>
     <string name="session_status_placeholder">Connected. Waiting for status…</string>
     <string name="session_status_wifi_connected">Wi-Fi: Connected</string>
     <string name="session_status_wifi_disconnected">Wi-Fi: Disconnected</string>
