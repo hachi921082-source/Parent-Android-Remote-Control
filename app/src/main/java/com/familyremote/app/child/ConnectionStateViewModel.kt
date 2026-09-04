@@ -76,7 +76,8 @@ class ConnectionStateViewModel(private val scope: CoroutineScope) {
 
         val activeWatchdog = watchdog ?: HeartbeatWatchdog(
             onReconnectingDetected = { onReconnectingDetected(pairing) },
-            onDisconnectedDetected = { onDisconnectedDetected(pairing) }
+            onDisconnectedDetected = { onDisconnectedDetected(pairing) },
+            onRecovered = { onRecoveredFromReconnecting(pairing) }
         ).also { watchdog = it }
         activeWatchdog.start(scope) // (re)starts -- lastReceivedAt/reconnectingSince reset to "now".
 
@@ -107,6 +108,16 @@ class ConnectionStateViewModel(private val scope: CoroutineScope) {
         // Re-arms a short-lived accept loop (§6) -- reuses the still-open ServerSocket if the
         // blip didn't actually close it, or re-opens it if the OS did.
         arm(pairing)
+    }
+
+    /** Same-socket self-heal (issue #4): the original channel resumed delivering messages while
+     * `Reconnecting`, without ever needing a fresh `SESSION_HELLO`. Transitions straight back to
+     * `Live` and stops the fallback accept loop [onReconnectingDetected] armed, since it's no
+     * longer needed. */
+    private fun onRecoveredFromReconnecting(pairing: PairingEntry) {
+        if (_state.value !is ConnectionState.Reconnecting) return
+        listener.stop()
+        _state.value = ConnectionState.Live(pairing)
     }
 
     private fun onDisconnectedDetected(pairing: PairingEntry) {
