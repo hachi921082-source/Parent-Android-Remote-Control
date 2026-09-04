@@ -60,10 +60,12 @@ public static class PcPairingHandshakeClient
             PairingAckPayload ack = PairingAckPayload.Parse(frame.PayloadAsUtf8String());
             return PairingHandshakeResult.Success(ack.ChildId, proposedSecret);
         }
-        catch (Exception ex) when (ex is SocketException or IOException or ObjectDisposedException or JsonException)
+        catch (Exception ex) when (ex is SocketException or IOException or ObjectDisposedException or JsonException or InvalidDataException)
         {
             // JsonExceptionはPairingAckPayload.Parseが不正/破損したPAIRING_ACK JSONを受け取った場合
             // （childIdフィールドのGuid形式不正を含む）にThrowHelper経由でも投げられる -- #13参照。
+            // InvalidDataExceptionはMessageFrame.ReadFromが不正なフレーム長ヘッダーを受け取った場合
+            // に投げられる -- IOExceptionを継承しないSystemException派生なので別途必要 -- #17参照。
             return PairingHandshakeResult.Failure(ex.Message);
         }
     }
