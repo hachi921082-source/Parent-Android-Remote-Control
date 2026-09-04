@@ -16,7 +16,8 @@ import kotlinx.coroutines.launch
  */
 class HeartbeatWatchdog(
     private val onReconnectingDetected: () -> Unit,
-    private val onDisconnectedDetected: () -> Unit
+    private val onDisconnectedDetected: () -> Unit,
+    private val onRecovered: () -> Unit
 ) {
     @Volatile
     private var lastReceivedAt = 0L
@@ -67,10 +68,15 @@ class HeartbeatWatchdog(
     }
 
     /** Called on any inbound session-channel message; also clears a `Reconnecting` mark, since
-     * receiving anything means the connection is alive again. */
+     * receiving anything means the connection is alive again. If it was actually marked
+     * `Reconnecting`, this is the same-socket self-heal case (issue #4) -- the socket was never
+     * truly replaced, so nothing else would otherwise tell [ConnectionStateViewModel] to leave
+     * `Reconnecting`; [onRecovered] closes that gap. */
     fun onMessageReceived() {
         lastReceivedAt = System.currentTimeMillis()
+        val wasReconnecting = reconnectingSince != null
         reconnectingSince = null
+        if (wasReconnecting) onRecovered()
     }
 
     fun stop() {
