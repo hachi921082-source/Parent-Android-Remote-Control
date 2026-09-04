@@ -225,6 +225,9 @@
   <data name="SessionDisconnectedBack" xml:space="preserve">
     <value>Back to pairing list</value>
   </data>
+  <data name="SessionRejectedTitle" xml:space="preserve">
+    <value>Another device is already connected to {0}. Try again once that session ends.</value>
+  </data>
   <data name="VideoFlagSecureHint" xml:space="preserve">
     <value>A black screen may mean a protected app (like banking or a password manager) is open on their device — this isn't necessarily a connection problem.</value>
   </data>
