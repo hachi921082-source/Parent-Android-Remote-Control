@@ -16,11 +16,21 @@ namespace FamilyRemote.PcClient.Zoom;
 /// したビットマップを作るわけではない）。Level&gt;1では、レターボックスの「詰まっている」軸
 /// （baseContentRectのWidth/HeightのうちVideoView寸法と一致する方。詳細は
 /// <see cref="ZoomController.ComputeMaxZoomLevel"/>のコメント参照）は必然的にVideoViewの外へはみ出す。
-/// WPFのPanel（Grid）はデフォルトでは子要素をクリップしないため、このはみ出しは自動的には見えなく
-/// ならない -- <see cref="Session.LiveView"/>のコンストラクタがVideoViewインスタンス自身へ明示的に
-/// <c>ClipToBounds = true</c>を設定していることで初めて、はみ出した部分がVideoViewの境界で
-/// 実際にクリップされ見えなくなる（これが「ズームイン」の見た目の実体）。はみ出しをどこまで許容するかの上限は
-/// <see cref="ZoomController"/>が§4のfit-to-windowキャップとして管理する（このクラス自身は
+///
+/// このはみ出しがTextInputSlot側まで実際に描画されてしまわない理由はWPFのExplicit clip設定
+/// （<c>UIElement.ClipToBounds</c>）ではなく、Grid/Panelのarrange時に標準で働く自動レイアウトクリップ
+/// である: FrameImageはHorizontalAlignment="Left"/VerticalAlignment="Top"（非Stretch）のため、
+/// arrange時のDesiredSizeは明示的なWidth/Height（Level倍された値）でそのまま決まるが、そのDesiredSize
+/// が親から渡されたarrange slot（VideoView自身のGridセル＝VideoViewの実寸）を超える場合、WPFの
+/// FrameworkElement.ArrangeCoreはそのarrange slotのサイズへ自動的にクリップを適用する
+/// （このクリップは子のサイズが親のarrange slotを超えるケース全般で標準的に働く既定動作であり、
+/// Grid/StackPanel/Border等どのPanelでも、ClipToBoundsの値に関わらず発生する）。実機クラス
+/// （VideoView/LiveViewの実XAML構造）を使った再検証ハーネスで、<c>ClipToBounds=true/false</c>いずれでも
+/// TextInputSlot側への描画漏れが一切発生しないことを確認済み。<c>ClipToBounds</c>が意味を持つのは、
+/// これとは別の話 -- RenderTransformによる拡大やCanvas上の絶対配置など、通常のarrange経由をバイパスして
+/// 要素の描画結果だけが自身のレイアウトサイズを超えるケースで、要素自身の境界へクリップしたい場合である
+/// （今回のFrameImageは明示Width/Height経由の通常arrangeなので該当しない）。はみ出しをどこまで許容するかの
+/// 上限は<see cref="ZoomController"/>が§4のfit-to-windowキャップとして管理する（このクラス自身は
 /// <see cref="ZoomState.Level"/>/<see cref="ZoomState.OffsetX"/>/<see cref="ZoomState.OffsetY"/>を
 /// 検証・クランプしない -- 渡された値をそのまま信頼する純粋関数）。
 /// </summary>
