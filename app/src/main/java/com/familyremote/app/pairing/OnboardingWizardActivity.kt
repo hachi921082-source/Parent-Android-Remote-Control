@@ -3,21 +3,24 @@ package com.familyremote.app.pairing
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.os.PowerManager
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.familyremote.app.common.AccessibilityPermissionMonitor
 
 /**
- * Orchestrates onboarding steps 2->3->4 (detailed-spec §13), which are all performed physically
- * on the parent device -- see PLAN.md §5. Steps 2-3 are skipped on re-entry once already
- * satisfied/acknowledged; step 4 (pairing exchange) always runs since each new pairing needs a
- * fresh handshake. Step 5 (label assignment) is the child device's counterpart, handled
- * separately by [ChildPairingScanActivity] / [PairingLabelPromptActivity].
+ * Orchestrates onboarding steps 2->4 (detailed-spec §13), which are all performed physically
+ * on the parent device -- see PLAN.md §5. Step 2 (accessibility + battery setup, merged into one
+ * screen per issue #27) is skipped on re-entry once both are already granted -- both are now
+ * directly, live-checkable, so no separate "acknowledged" flag is needed; step 4 (pairing
+ * exchange) always runs since each new pairing needs a fresh handshake. Step 5 (label assignment)
+ * is the child device's counterpart, handled separately by [ChildPairingScanActivity] /
+ * [PairingLabelPromptActivity].
  */
 class OnboardingWizardActivity : AppCompatActivity() {
 
-    private var currentStep = Step.ACCESSIBILITY
+    private var currentStep = Step.SETUP
     private lateinit var stepLauncher: ActivityResultLauncher<Intent>
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -39,18 +42,11 @@ class OnboardingWizardActivity : AppCompatActivity() {
 
     private fun runCurrentStep() {
         when (currentStep) {
-            Step.ACCESSIBILITY -> {
-                if (AccessibilityPermissionMonitor.isGranted(this)) {
+            Step.SETUP -> {
+                if (AccessibilityPermissionMonitor.isGranted(this) && isIgnoringBatteryOptimizations()) {
                     advanceToNextStep()
                 } else {
                     stepLauncher.launch(Intent(this, AccessibilityOnboardingActivity::class.java))
-                }
-            }
-            Step.MYOS_CHECKLIST -> {
-                if (MyOsSetupChecklistActivity.isAcknowledged(this)) {
-                    advanceToNextStep()
-                } else {
-                    stepLauncher.launch(Intent(this, MyOsSetupChecklistActivity::class.java))
                 }
             }
             Step.PAIRING -> {
@@ -63,13 +59,18 @@ class OnboardingWizardActivity : AppCompatActivity() {
         }
     }
 
+    private fun isIgnoringBatteryOptimizations(): Boolean {
+        val powerManager = getSystemService(POWER_SERVICE) as PowerManager
+        return powerManager.isIgnoringBatteryOptimizations(packageName)
+    }
+
     private fun advanceToNextStep() {
         currentStep = currentStep.next()
         runCurrentStep()
     }
 
     private enum class Step {
-        ACCESSIBILITY, MYOS_CHECKLIST, PAIRING, DONE;
+        SETUP, PAIRING, DONE;
 
         fun next(): Step = entries[(ordinal + 1).coerceAtMost(entries.size - 1)]
     }
