@@ -52,9 +52,6 @@
     <string name="myos_checklist_step_battery">Allow unrestricted battery usage for this app (Settings → Apps → Family Remote → Battery → Unrestricted).</string>
     <string name="myos_checklist_step_battery_button">Open app battery settings</string>
     <string name="myos_checklist_step_autostart">Settings → App Management → Auto Start Management → enable Family Remote. (No direct link available on this device — please navigate there manually.)</string>
-    <string name="myos_checklist_checkbox_generic">I understand</string>
-    <string name="myos_checklist_checkbox_battery">I completed the battery setting</string>
-    <string name="myos_checklist_checkbox_autostart">I completed the auto-start setting</string>
 
     <!-- Parent pairing (QR display) -->
     <string name="parent_pairing_title">Pair a new child device</string>
