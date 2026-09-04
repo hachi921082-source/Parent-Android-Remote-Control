@@ -29,4 +29,11 @@ public abstract record ConnectionState
 
     /// <summary>60秒以内に再接続できず切断確定。ペアリング選択への復帰のみが次の操作。</summary>
     public sealed record Disconnected(PcPairingEntry Pairing) : ConnectionState;
+
+    /// <summary>
+    /// 接続競合の敗者としてSESSION_BUSYを受信し、親側でソケットを閉じられた（GitHub issue #16、
+    /// single-session-enforcement）。再試行は行わない -- Disconnectedと同様、ペアリング選択への
+    /// 復帰のみが次の操作。Android側 common.ConnectionState.Rejectedに対応する。
+    /// </summary>
+    public sealed record Rejected(PcPairingEntry Pairing) : ConnectionState;
 }
