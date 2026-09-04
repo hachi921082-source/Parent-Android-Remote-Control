@@ -4,6 +4,7 @@ import android.app.Activity
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.familyremote.app.R
+import com.familyremote.app.common.applyStatusBarTopInsetPadding
 import com.familyremote.app.databinding.ActivityPairingLabelPromptBinding
 import java.util.UUID
 
@@ -19,6 +20,7 @@ class PairingLabelPromptActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityPairingLabelPromptBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        binding.root.applyStatusBarTopInsetPadding()
 
         binding.labelEditText.setText(getString(R.string.pairing_label_prompt_default))
         binding.labelEditText.setSelection(binding.labelEditText.text?.length ?: 0)
