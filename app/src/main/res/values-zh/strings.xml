@@ -62,8 +62,9 @@
     <string name="parent_pairing_manual_code_label">手动配对码：%1$s</string>
     <string name="parent_pairing_waiting">正在等待子女设备扫描此二维码…</string>
     <string name="parent_pairing_success">配对成功！</string>
-    <string name="parent_pairing_tailscale_missing">请点击"打开 Tailscale"来安装 Tailscale 应用。安装完成后，打开该应用并登录家庭 tailnet，然后返回此界面点击"重试"。</string>
-    <string name="parent_pairing_open_tailscale">打开 Tailscale</string>
+    <string name="parent_pairing_tailscale_missing">请点击"安装"来安装 Tailscale 应用。安装完成后，点击"打开"启动该应用并登录家庭 tailnet，然后返回此界面点击"重试"。</string>
+    <string name="parent_pairing_install_tailscale">安装</string>
+    <string name="parent_pairing_open_tailscale">打开</string>
     <string name="parent_pairing_error_timeout">配对超时，请重试。</string>
     <string name="parent_pairing_error_generic">配对失败：%1$s</string>
 
