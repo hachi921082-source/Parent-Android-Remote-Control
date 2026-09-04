@@ -19,3 +19,18 @@ fun View.applyStatusBarTopInsetPadding() {
         insets
     }
 }
+
+/**
+ * Adds the system navigation bar's bottom inset to [this] view's existing bottom padding, so a
+ * bottom-pinned action button isn't crowded by (or drawn under) the nav bar on API 35+ edge-to-edge
+ * (issue #21 follow-up). Apply to the specific bottom-pinned view, not the screen's scrollable root
+ * -- combine with [applyStatusBarTopInsetPadding] on the same view only via a single listener call.
+ */
+fun View.applyNavigationBarBottomInsetPadding() {
+    val basePaddingBottom = paddingBottom
+    ViewCompat.setOnApplyWindowInsetsListener(this) { view, insets ->
+        val systemBarsInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+        view.updatePadding(bottom = basePaddingBottom + systemBarsInsets.bottom)
+        insets
+    }
+}
