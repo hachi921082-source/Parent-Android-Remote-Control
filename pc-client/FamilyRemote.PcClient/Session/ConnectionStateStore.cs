@@ -154,6 +154,7 @@ public sealed class ConnectionStateStore
         channel.RegisterHandler(MessageType.StatusHeartbeat, frame => OnStatusFrame(frame, watchdog, isEvent: false));
         channel.RegisterHandler(MessageType.StatusEvent, frame => OnStatusFrame(frame, watchdog, isEvent: true));
         channel.RegisterHandler(MessageType.VideoFrame, frame => OnVideoFrame(frame, watchdog));
+        channel.RegisterHandler(MessageType.SessionBusy, _ => RunOnUiThread(() => OnSessionBusyDetected(pairing)));
         channel.ConnectionLost += () => watchdog.NotifyConnectionLost();
         channel.Start();
     }
@@ -238,6 +239,28 @@ public sealed class ConnectionStateStore
         _decoder = null;
         _listener.Stop();
         SetState(new ConnectionState.Disconnected(pairing));
+    }
+
+    /// <summary>
+    /// 接続競合の敗者としてSESSION_BUSYを受信した（GitHub issue #16、single-session-enforcement）。
+    /// <see cref="OnDisconnectedDetected"/>と同じ後片付け（チャネル/watchdog/デコーダ/リスナーを
+    /// すべて畳む）を行い、Rejectedへ着地する点のみが異なる -- 敗者側は再試行しないため、
+    /// <see cref="OnReconnectingDetected"/>を経由しない。Android側 ConnectionStateViewModel
+    /// .onSessionBusyDetectedと同じ構造（channel.close()相当はSessionChannel.RegisterHandler
+    /// の呼び出し元であるSessionChannel自身の読み取りループが既に終えている必要はない -- こちら側の
+    /// SessionChannelは「未登録のMessageTypeは無視するだけ」の単純ディスパッチャで、ループを
+    /// 自発的に終了させる仕組みを持たないため、ここでChannel.Close()を呼んで能動的に閉じる）。
+    /// </summary>
+    private void OnSessionBusyDetected(PcPairingEntry pairing)
+    {
+        _channel?.Close();
+        _channel = null;
+        _watchdog?.Stop();
+        _watchdog = null;
+        _decoder?.Dispose();
+        _decoder = null;
+        _listener.Stop();
+        SetState(new ConnectionState.Rejected(pairing));
     }
 
     /// <summary>

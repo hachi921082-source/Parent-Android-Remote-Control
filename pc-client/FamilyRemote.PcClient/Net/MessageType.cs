@@ -23,6 +23,7 @@ public enum MessageType : byte
     TextInjectFailed = 9,
     SessionEnd = 10,
     InputKey = 11,
+    SessionBusy = 12,
 
     // ペアリング時専用（一時的な別コネクション、ライブセッションプロトコルとは独立）。
     // このtierが実装する唯一の2値。
