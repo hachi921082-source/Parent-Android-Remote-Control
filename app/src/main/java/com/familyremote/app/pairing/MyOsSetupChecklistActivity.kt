@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.provider.Settings
 import androidx.appcompat.app.AppCompatActivity
 import com.familyremote.app.R
+import com.familyremote.app.common.applyStatusBarTopInsetPadding
 import com.familyremote.app.databinding.ActivityMyosSetupChecklistBinding
 
 /**
@@ -26,6 +27,7 @@ class MyOsSetupChecklistActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMyosSetupChecklistBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        binding.root.applyStatusBarTopInsetPadding()
 
         binding.introText.setText(
             if (isRecognizedDevice) R.string.myos_checklist_intro_specific else R.string.myos_checklist_intro_generic
