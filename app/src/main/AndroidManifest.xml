@@ -81,7 +81,7 @@
             android:name=".parent.ShareStartTrampolineActivity"
             android:exported="false"
             android:excludeFromRecents="true"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+            android:theme="@style/Theme.FamilyRemote.Trampoline" />
 
         <service
             android:name=".parent.ScreenShareForegroundService"
