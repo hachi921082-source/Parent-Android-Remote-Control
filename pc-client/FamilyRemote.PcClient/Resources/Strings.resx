@@ -228,4 +228,13 @@
   <data name="VideoFlagSecureHint" xml:space="preserve">
     <value>A black screen may mean a protected app (like banking or a password manager) is open on their device — this isn't necessarily a connection problem.</value>
   </data>
+  <data name="SessionInputUnavailableBanner" xml:space="preserve">
+    <value>Input unavailable right now — ask them to check the Accessibility Service setting.</value>
+  </data>
+  <data name="SessionTextInjectFailedNotice" xml:space="preserve">
+    <value>No active text field on their screen right now.</value>
+  </data>
+  <data name="SessionTextInputSend" xml:space="preserve">
+    <value>Send</value>
+  </data>
 </root>

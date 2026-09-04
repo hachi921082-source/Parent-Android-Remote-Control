@@ -144,4 +144,15 @@ public static class Strings
 
     public static string VideoFlagSecureHint =>
         ResourceManager.GetString(nameof(VideoFlagSecureHint), Culture) ?? nameof(VideoFlagSecureHint);
+
+    // --- input-relay (docs/plans/pc-client/input-relay/PLAN.md §6/§7/§8) ---
+
+    public static string SessionInputUnavailableBanner =>
+        ResourceManager.GetString(nameof(SessionInputUnavailableBanner), Culture) ?? nameof(SessionInputUnavailableBanner);
+
+    public static string SessionTextInjectFailedNotice =>
+        ResourceManager.GetString(nameof(SessionTextInjectFailedNotice), Culture) ?? nameof(SessionTextInjectFailedNotice);
+
+    public static string SessionTextInputSend =>
+        ResourceManager.GetString(nameof(SessionTextInputSend), Culture) ?? nameof(SessionTextInputSend);
 }

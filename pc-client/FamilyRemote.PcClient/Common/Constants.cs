@@ -46,4 +46,9 @@ public static class Constants
 
     /// <summary>Reconnecting→Disconnected遷移までの猶予（ミリ秒）。Android側RECONNECT_WINDOW_MSと同値。</summary>
     public const long ReconnectWindowMs = 60_000;
+
+    // --- Input-relay (このtier). docs/plans/pc-client/input-relay/PLAN.md §6参照. ---
+
+    /// <summary>タップ/スワイプのローカルマーカーのフェードアウト時間（ミリ秒）。Android側TAP_MARKER_FADE_MSと同値。</summary>
+    public const long TapMarkerFadeMs = 300;
 }

@@ -228,4 +228,13 @@
   <data name="VideoFlagSecureHint" xml:space="preserve">
     <value>如果对方设备上打开了银行、密码管理器等受保护的应用，屏幕可能会显示为黑屏，这不一定代表连接出现了问题。</value>
   </data>
+  <data name="SessionInputUnavailableBanner" xml:space="preserve">
+    <value>当前无法操作，请让对方检查无障碍服务设置。</value>
+  </data>
+  <data name="SessionTextInjectFailedNotice" xml:space="preserve">
+    <value>对方屏幕上当前没有可输入文字的位置。</value>
+  </data>
+  <data name="SessionTextInputSend" xml:space="preserve">
+    <value>发送</value>
+  </data>
 </root>

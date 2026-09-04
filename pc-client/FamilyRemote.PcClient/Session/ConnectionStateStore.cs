@@ -46,6 +46,15 @@ public sealed class ConnectionStateStore
     /// </summary>
     public MediaFoundationDecoder? Decoder => _decoder;
 
+    /// <summary>
+    /// Live/Reconnectingの間だけ非null。<see cref="Decoder"/>と同じ理由でmirroringする
+    /// input-relay.PLAN.md §2/§9向けの公開プロパティ -- <see cref="OnConnected"/>は<see cref="Decoder"/>
+    /// と同様、<see cref="SetState"/>より前にこれを更新するため、<see cref="Session.LiveView"/>の
+    /// コンストラクタ時点（<see cref="StateChanged"/>がLiveへ遷移するのと同期）で既に新しい
+    /// チャネルを指している。
+    /// </summary>
+    public SessionChannel? Channel => _channel;
+
     /// <summary>状態が変わるたびに発火する。常にUIスレッド上で呼ばれる。</summary>
     public event Action<ConnectionState>? StateChanged;
 
@@ -125,6 +134,15 @@ public sealed class ConnectionStateStore
         // （既にDecoderが存在する場合）は既存インスタンスを使い回す。
         _decoder ??= new MediaFoundationDecoder();
 
+        // Channelも同じ理由でSetStateより前に更新する（input-relay.PLAN.md §2/§9） --
+        // Session/LiveView.xaml.csがそのコンストラクタ内でstore.Channelへ直接ハンドラを登録できる
+        // ようにするため（VideoViewのAttach(store.Decoder!)と同じパターン）。旧チャネルは
+        // 参照だけ保持しておき、実際にCloseするのは以前の並び通りこの後（handlerの登録/Start()より前）
+        // で行う -- 挙動自体（旧チャネルは閉じる、新チャネルは同じ3ハンドラ+ConnectionLost+Start()を
+        // 得る）は変えていない。
+        SessionChannel? previousChannel = _channel;
+        _channel = channel;
+
         SetState(new ConnectionState.Live(pairing));
 
         HeartbeatWatchdog watchdog = _watchdog ??= new HeartbeatWatchdog(
@@ -132,12 +150,11 @@ public sealed class ConnectionStateStore
             onDisconnectedDetected: () => RunOnUiThread(() => OnDisconnectedDetected(pairing)));
         watchdog.Start(); // (再)開始 -- 最終受信時刻/Reconnectingマークを「今」にリセット。
 
-        _channel?.Close();
+        previousChannel?.Close();
         channel.RegisterHandler(MessageType.StatusHeartbeat, frame => OnStatusFrame(frame, watchdog, isEvent: false));
         channel.RegisterHandler(MessageType.StatusEvent, frame => OnStatusFrame(frame, watchdog, isEvent: true));
         channel.RegisterHandler(MessageType.VideoFrame, frame => OnVideoFrame(frame, watchdog));
         channel.ConnectionLost += () => watchdog.NotifyConnectionLost();
-        _channel = channel;
         channel.Start();
     }
 

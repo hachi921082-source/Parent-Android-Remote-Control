@@ -228,4 +228,13 @@
   <data name="VideoFlagSecureHint" xml:space="preserve">
     <value>銀行アプリやパスワード管理アプリなど、保護されたアプリが相手の端末で開かれている場合、画面が真っ黒に表示されることがあります。必ずしも接続の問題とは限りません。</value>
   </data>
+  <data name="SessionInputUnavailableBanner" xml:space="preserve">
+    <value>現在、操作はできません。ユーザー補助サービスの設定を確認するよう伝えてください。</value>
+  </data>
+  <data name="SessionTextInjectFailedNotice" xml:space="preserve">
+    <value>相手の画面に文字入力できる項目がありません。</value>
+  </data>
+  <data name="SessionTextInputSend" xml:space="preserve">
+    <value>送信</value>
+  </data>
 </root>
