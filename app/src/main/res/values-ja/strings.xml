@@ -51,6 +51,8 @@
     <string name="myos_checklist_intro_generic">この端末がバックグラウンドのアプリを強制的に終了させる場合、次の設定を行うと共有が安定しやすくなります。</string>
     <string name="myos_checklist_step_battery">このアプリのバッテリー使用を無制限に許可してください（設定 → アプリ → ファミリーリモート → バッテリー → 無制限）。</string>
     <string name="myos_checklist_step_battery_button">アプリのバッテリー設定を開く</string>
+    <string name="myos_checklist_battery_status_granted">状態：バッテリーの無制限使用が許可されています</string>
+    <string name="myos_checklist_battery_status_not_granted">状態：まだ許可されていません</string>
     <string name="myos_checklist_step_autostart">設定 → アプリ管理 → 自動起動管理 で「ファミリーリモート」を有効にしてください。（この端末では直接開くリンクがありません。手動で移動してください。）</string>
 
     <!-- Parent pairing (QR display) -->

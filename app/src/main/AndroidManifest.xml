@@ -31,6 +31,10 @@
          reliably grantable/effective on the target device is an open, tracked verification item
          (see docs/QA.md), not something this manifest declaration alone resolves. -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <!-- MyOsSetupChecklistActivity's battery-optimization-exemption request (issue #26): lets the
+         "open battery settings" button deep-link straight to the system's unrestricted-battery
+         dialog for this app, instead of the generic App Info screen. -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
     <application
         android:allowBackup="true"

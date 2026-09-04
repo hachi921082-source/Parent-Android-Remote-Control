@@ -51,6 +51,8 @@
     <string name="myos_checklist_intro_generic">If this phone aggressively closes background apps, these settings may help keep sharing sessions stable:</string>
     <string name="myos_checklist_step_battery">Allow unrestricted battery usage for this app (Settings → Apps → Family Remote → Battery → Unrestricted).</string>
     <string name="myos_checklist_step_battery_button">Open app battery settings</string>
+    <string name="myos_checklist_battery_status_granted">Status: unrestricted battery usage is allowed</string>
+    <string name="myos_checklist_battery_status_not_granted">Status: not allowed yet</string>
     <string name="myos_checklist_step_autostart">Settings → App Management → Auto Start Management → enable Family Remote. (No direct link available on this device — please navigate there manually.)</string>
 
     <!-- Parent pairing (QR display) -->
