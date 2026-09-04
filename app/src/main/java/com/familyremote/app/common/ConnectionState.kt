@@ -14,6 +14,7 @@ import com.familyremote.app.pairing.PairingEntry
  *    -> Live (heartbeat + missed-heartbeat watchdog active)
  *    -> Reconnecting (<=60s)
  *    -> Disconnected (terminal, directs back to Idle/PairingSelect)
+ *    -> Rejected (terminal, directs back to Idle/PairingSelect -- single-session-enforcement)
  * ```
  *
  * `inputAvailable` (view-only mode, detailed-spec §11) is NOT encoded here -- it is an orthogonal
@@ -25,4 +26,11 @@ sealed class ConnectionState {
     data class Live(val pairing: PairingEntry) : ConnectionState()
     data class Reconnecting(val pairing: PairingEntry, val since: Long) : ConnectionState()
     data class Disconnected(val pairing: PairingEntry) : ConnectionState()
+
+    /** Terminal: the parent already had another client Live and rejected this one via
+     * `SESSION_BUSY` (docs/plans/single-session-enforcement/PLAN.md §4/§6). Kept as its own state
+     * rather than folded into [Disconnected] -- unlike that state's deliberate
+     * process-kill-vs-network-outage ambiguity, the cause here is precisely known and worth
+     * stating plainly to the user. */
+    data class Rejected(val pairing: PairingEntry) : ConnectionState()
 }
