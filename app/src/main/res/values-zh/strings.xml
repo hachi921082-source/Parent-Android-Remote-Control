@@ -9,7 +9,7 @@
     <!-- Parent home -->
     <string name="parent_home_title">家长模式</string>
     <string name="parent_home_show_screen_button">显示屏幕</string>
-    <string name="parent_home_pair_button">配对新的子女设备</string>
+    <string name="parent_home_pair_button">初始设置</string>
 
     <!-- Show Screen widget (placeholder icon/label; see ShowScreenWidgetProvider) -->
     <string name="widget_show_screen_label">显示屏幕</string>
