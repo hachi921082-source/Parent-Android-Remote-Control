@@ -35,7 +35,7 @@ Everything on the parent side needed to go from "widget/app tap" to "live H.264 
 
 Per detailed-spec §4: widget tap (1) → OS "Start Now?" dialog (2, unavoidable, Decision #1).
 
-1. Widget tap fires `ShareStartTrampolineActivity` with `theme = Theme.Translucent.NoTitleBar` (never visibly renders anything of its own).
+1. Widget tap fires `ShareStartTrampolineActivity` with `theme = Theme.FamilyRemote.Trampoline` (an AppCompat/MaterialComponents-descendant translucent theme — the activity extends `AppCompatActivity`, so a raw platform theme crashes it, GitHub issue #19; never visibly renders anything of its own).
 2. `onCreate()`: if `ScreenShareForegroundService.isRunning` (companion `MutableStateFlow`/static flag) is true, skip straight to step 4 (duplicate-launch guard, §4 below) instead of requesting a new grant.
 3. Otherwise, call `mediaProjectionManager.createScreenCaptureIntent()` via `registerForActivityResult(StartActivityForResult())`. This surfaces the OS dialog (tap 2). On result:
    - Granted: start `ScreenShareForegroundService` via `startForegroundService()`, passing the `resultCode`/`resultData` Intent as service-start extras; the service calls `mediaProjectionManager.getMediaProjection(resultCode, resultData)` once running and immediately calls `startForeground()` (must happen within the OS's 5s window).
