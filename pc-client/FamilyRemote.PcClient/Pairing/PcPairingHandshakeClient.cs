@@ -1,5 +1,6 @@
 using System.IO;
 using System.Net.Sockets;
+using System.Text.Json;
 using FamilyRemote.PcClient.Common;
 using FamilyRemote.PcClient.Net;
 
@@ -59,8 +60,10 @@ public static class PcPairingHandshakeClient
             PairingAckPayload ack = PairingAckPayload.Parse(frame.PayloadAsUtf8String());
             return PairingHandshakeResult.Success(ack.ChildId, proposedSecret);
         }
-        catch (Exception ex) when (ex is SocketException or IOException or ObjectDisposedException)
+        catch (Exception ex) when (ex is SocketException or IOException or ObjectDisposedException or JsonException)
         {
+            // JsonExceptionはPairingAckPayload.Parseが不正/破損したPAIRING_ACK JSONを受け取った場合
+            // （childIdフィールドのGuid形式不正を含む）にThrowHelper経由でも投げられる -- #13参照。
             return PairingHandshakeResult.Failure(ex.Message);
         }
     }
