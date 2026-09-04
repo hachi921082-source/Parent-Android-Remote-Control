@@ -39,7 +39,7 @@
     <string name="accessibility_service_description">在远程协助期间，允许已配对的子女设备在本设备上进行点按、滑动和文字输入。</string>
 
     <!-- Accessibility onboarding -->
-    <string name="accessibility_onboarding_title">启用无障碍服务</string>
+    <string name="accessibility_onboarding_title">初始设置</string>
     <string name="accessibility_onboarding_open_settings">打开无障碍设置</string>
     <string name="accessibility_onboarding_status_granted">状态：已启用</string>
     <string name="accessibility_onboarding_status_not_granted">状态：尚未启用</string>
@@ -58,9 +58,12 @@
     <string name="parent_pairing_manual_code_label">手动配对码：%1$s</string>
     <string name="parent_pairing_waiting">正在等待子女设备扫描此二维码…</string>
     <string name="parent_pairing_success">配对成功！</string>
-    <string name="parent_pairing_tailscale_missing">请点击"安装"来安装 Tailscale 应用。安装完成后，点击"打开"启动该应用并登录家庭 tailnet，然后返回此界面点击"重试"。</string>
-    <string name="parent_pairing_install_tailscale">安装</string>
-    <string name="parent_pairing_open_tailscale">打开</string>
+    <string name="parent_pairing_tailscale_missing">Tailscale 未连接。请返回"初始设置"进行检查。</string>
+    <string name="parent_pairing_tailscale_section_title">Tailscale 设置</string>
+    <string name="parent_pairing_install_tailscale">安装 Tailscale</string>
+    <string name="parent_pairing_open_tailscale">打开 Tailscale</string>
+    <string name="parent_pairing_tailscale_status_connected">状态：已连接 Tailscale</string>
+    <string name="parent_pairing_tailscale_status_not_connected">状态：尚未连接</string>
     <string name="parent_pairing_error_timeout">配对超时，请重试。</string>
     <string name="parent_pairing_error_generic">配对失败：%1$s</string>
 
