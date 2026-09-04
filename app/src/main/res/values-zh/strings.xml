@@ -90,6 +90,7 @@
     <string name="session_reconnecting_banner">正在重新连接…</string>
     <string name="session_disconnected_title">与%1$s的连接已断开。如果情况持续，请让对方重新操作一次。</string>
     <string name="session_disconnected_back">返回设备列表</string>
+    <string name="session_rejected_title">已有其他设备连接到%1$s。请等该连接结束后再试一次。</string>
     <string name="session_status_placeholder">已连接，正在等待状态信息…</string>
     <string name="session_status_wifi_connected">Wi-Fi：已连接</string>
     <string name="session_status_wifi_disconnected">Wi-Fi：未连接</string>

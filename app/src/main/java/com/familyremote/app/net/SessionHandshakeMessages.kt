@@ -45,3 +45,18 @@ data class SessionEndPayload(
         }
     }
 }
+
+/**
+ * Payload of the `SESSION_BUSY` frame (parent -> child, docs/plans/single-session-enforcement/
+ * PLAN.md §5) -- sent immediately after a losing arbitration attempt, before any
+ * `SESSION_END`/`VIDEO_FRAME`. `reason` mirrors [SessionEndPayload]'s shape/future-proofing even
+ * though only one reason exists today.
+ */
+data class SessionBusyPayload(val reason: String = "session_already_active") {
+    fun toJson(): String = JSONObject().apply { put("reason", reason) }.toString()
+
+    companion object {
+        fun parse(raw: String): SessionBusyPayload =
+            SessionBusyPayload(reason = JSONObject(raw).optString("reason", "session_already_active"))
+    }
+}

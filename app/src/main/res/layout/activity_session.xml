@@ -202,4 +202,33 @@
 
     </LinearLayout>
 
+    <!-- Rejected (docs/plans/single-session-enforcement/PLAN.md §6): another client already holds
+         the parent's single Live slot. Mirrors disconnectedSection's layout pattern exactly,
+         reusing session_disconnected_back for the same "back to device list" action. -->
+    <LinearLayout
+        android:id="@+id/rejectedSection"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="24dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/rejectedText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textColor="@android:color/white"
+            android:textSize="18sp" />
+
+        <Button
+            android:id="@+id/rejectedBackButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="@string/session_disconnected_back" />
+
+    </LinearLayout>
+
 </FrameLayout>

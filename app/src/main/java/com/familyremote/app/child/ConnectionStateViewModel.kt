@@ -86,6 +86,7 @@ class ConnectionStateViewModel(private val scope: CoroutineScope) {
             onAnyMessage = { activeWatchdog.onMessageReceived() },
             onStatusUpdate = { payload -> _latestStatus.value = payload },
             onSessionEnded = { watchdog?.notifyConnectionLost() },
+            onSessionBusy = { onSessionBusyDetected(pairing) },
             onOtherMessage = { frame -> onOtherMessage(frame) }
         )
         channel = newChannel
@@ -115,6 +116,18 @@ class ConnectionStateViewModel(private val scope: CoroutineScope) {
         watchdog = null
         listener.stop()
         _state.value = ConnectionState.Disconnected(pairing)
+    }
+
+    /** `SESSION_BUSY` arrived (docs/plans/single-session-enforcement/PLAN.md §6) -- another client
+     * already holds the parent's single Live slot. Mirrors [onDisconnectedDetected]'s cleanup, but
+     * lands on the distinct terminal [ConnectionState.Rejected] state instead. */
+    private fun onSessionBusyDetected(pairing: PairingEntry) {
+        channel?.close()
+        channel = null
+        watchdog?.stop()
+        watchdog = null
+        listener.stop()
+        _state.value = ConnectionState.Rejected(pairing)
     }
 
     /** Cancel button in `WaitingForParent` -- back to Idle/PairingSelect, per PLAN.md §4 step 5. */

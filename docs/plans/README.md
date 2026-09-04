@@ -67,6 +67,7 @@ All live-session traffic (video, control input, status, text) rides a **single b
 | `TEXT_INJECT_FAILED` | parent→child | `{reason: "NO_FOCUSED_FIELD"}` | remote-input-control |
 | `INPUT_KEY` | child/PC→parent | `{key: RelayKey}` (one of `ARROW_UP`/`ARROW_DOWN`/`ARROW_LEFT`/`ARROW_RIGHT`/`BACKSPACE`/`DELETE`/`ENTER`/`TAB`/`ESCAPE`) | `docs/plans/pc-key-relay-support/PLAN.md` (parent-side handler), `docs/plans/pc-client/physical-key-relay-pc-side/PLAN.md` (PC-client send side) — added for the PC Viewer Client feature; tag value `11`, see `docs/pc-client-detailed-spec.md` §11 |
 | `SESSION_END` | either direction | `{reason: String}` | connection-status-and-resilience, screen-sharing-core |
+| `SESSION_BUSY` | parent→child, sent immediately after a losing arbitration attempt, before any SESSION_END/VIDEO_FRAME | `{reason: String}` | single-session-enforcement |
 
 Pairing-time-only messages (`PAIRING_HELLO`, `PAIRING_ACK`) are a separate, short-lived exchange defined in `docs/plans/pairing-and-onboarding/PLAN.md` §4 — not part of the live-session protocol above, and not sent on the same connection (pairing happens before any `PairingEntry`/`AuthorizedChild` exists to establish a session with).
 
