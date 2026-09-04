@@ -225,6 +225,9 @@
   <data name="SessionDisconnectedBack" xml:space="preserve">
     <value>返回配对列表</value>
   </data>
+  <data name="SessionRejectedTitle" xml:space="preserve">
+    <value>已有其他设备连接到{0}。请等该连接结束后再试一次。</value>
+  </data>
   <data name="VideoFlagSecureHint" xml:space="preserve">
     <value>如果对方设备上打开了银行、密码管理器等受保护的应用，屏幕可能会显示为黑屏，这不一定代表连接出现了问题。</value>
   </data>
