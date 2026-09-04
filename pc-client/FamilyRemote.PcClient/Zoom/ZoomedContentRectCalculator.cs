@@ -15,9 +15,11 @@ namespace FamilyRemote.PcClient.Zoom;
 /// 単純なアフィン変換（拡大 + 平行移動、パン/スクロールは持たない）である（サブ領域を別途クロップ
 /// したビットマップを作るわけではない）。Level&gt;1では、レターボックスの「詰まっている」軸
 /// （baseContentRectのWidth/HeightのうちVideoView寸法と一致する方。詳細は
-/// <see cref="ZoomController.ComputeMaxZoomLevel"/>のコメント参照）は必然的にVideoViewの外へはみ出し、
-/// はみ出した部分は通常のWPFレイアウトの描画順（後続要素に隠れる/親パネルの範囲外）で実質的に
-/// 見えなくなる -- これが「ズームイン」の見た目の実体であり、はみ出しをどこまで許容するかの上限は
+/// <see cref="ZoomController.ComputeMaxZoomLevel"/>のコメント参照）は必然的にVideoViewの外へはみ出す。
+/// WPFのPanel（Grid）はデフォルトでは子要素をクリップしないため、このはみ出しは自動的には見えなく
+/// ならない -- <see cref="Session.LiveView"/>のコンストラクタがVideoViewインスタンス自身へ明示的に
+/// <c>ClipToBounds = true</c>を設定していることで初めて、はみ出した部分がVideoViewの境界で
+/// 実際にクリップされ見えなくなる（これが「ズームイン」の見た目の実体）。はみ出しをどこまで許容するかの上限は
 /// <see cref="ZoomController"/>が§4のfit-to-windowキャップとして管理する（このクラス自身は
 /// <see cref="ZoomState.Level"/>/<see cref="ZoomState.OffsetX"/>/<see cref="ZoomState.OffsetY"/>を
 /// 検証・クランプしない -- 渡された値をそのまま信頼する純粋関数）。
