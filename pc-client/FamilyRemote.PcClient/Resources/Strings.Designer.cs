@@ -140,6 +140,11 @@ public static class Strings
     public static string SessionDisconnectedBack =>
         ResourceManager.GetString(nameof(SessionDisconnectedBack), Culture) ?? nameof(SessionDisconnectedBack);
 
+    // --- single-session-enforcement, PC client half (GitHub issue #16) ---
+
+    public static string SessionRejectedTitle =>
+        ResourceManager.GetString(nameof(SessionRejectedTitle), Culture) ?? nameof(SessionRejectedTitle);
+
     // --- video-and-session/decode (docs/plans/pc-client/video-and-session/decode.PLAN.md §9) ---
 
     public static string VideoFlagSecureHint =>
