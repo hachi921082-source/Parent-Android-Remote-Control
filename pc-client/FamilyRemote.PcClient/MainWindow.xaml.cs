@@ -113,6 +113,11 @@ public partial class MainWindow : Window
                 SetRootContent(new DisconnectedView(_store, disconnected.Pairing));
                 break;
 
+            case ConnectionState.Rejected rejected:
+                _liveView = null;
+                SetRootContent(new RejectedView(_store, rejected.Pairing));
+                break;
+
             case ConnectionState.Idle:
                 _liveView = null;
                 ShowPairingSelectionScreen();
