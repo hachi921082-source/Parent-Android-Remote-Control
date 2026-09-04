@@ -1,4 +1,5 @@
 using System.Windows.Controls;
+using FamilyRemote.PcClient.Zoom;
 
 namespace FamilyRemote.PcClient.Session;
 
@@ -6,7 +7,8 @@ namespace FamilyRemote.PcClient.Session;
 /// LiveView.xamlのコードビハインド。docs/plans/pc-client/connection-state-ui/PLAN.md §6/§7、
 /// video-and-session/decode.PLAN.md §2参照。<see cref="ParentStatusPanel"/>の更新と
 /// <see cref="ReconnectingBanner"/>の表示切り替え（connection-state-ui）に加え、<see cref="Video"/>
-/// を<c>store.Decoder</c>へ結びつける（decode）。TextInputSlotへの実装は後続tier（input-relay）の
+/// を<c>store.Decoder</c>へ結びつける（decode）ほか、<see cref="Video"/>に対する<see cref="ZoomController"/>
+/// の構築・結線（zoom-magnifier PLAN.md §6）を行う。TextInputSlotへの実装は後続tier（input-relay）の
 /// 責務。
 /// </summary>
 public partial class LiveView : UserControl
@@ -22,6 +24,13 @@ public partial class LiveView : UserControl
         // （LiveViewが構築されるのはConnectionStateがLiveへ遷移した後のみのため -- decode.PLAN.md
         // §4 step 1、Session/ConnectionStateStore.csのDecoderプロパティのコメント参照）。
         Video.Attach(store.Decoder!);
+
+        // ZoomControllerはVideoインスタンスと1:1でこのコンストラクタ内でのみ生成する -- LiveView自体が
+        // Live<->Reconnecting往復では再構築されない（MainWindow.xaml.csの_liveView/EnsureLiveView()
+        // 参照）ため、新規Live突入毎に必ず新しいZoomController（=新しいZoomState、Level=1.0）が
+        // 作られることになり、zoom-magnifier PLAN.md §6が要求する「新規Live突入毎にリセット」を
+        // 追加のリセットロジックなしに満たす。
+        _ = new ZoomController(Video);
 
         StatusPanel.Render(store.LatestStatus);
         RenderBanner(store.State);
