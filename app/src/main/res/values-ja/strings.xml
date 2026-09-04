@@ -40,7 +40,7 @@
 
     <!-- Accessibility onboarding -->
     <string name="accessibility_onboarding_title">ユーザー補助サービスを有効にする</string>
-    <string name="accessibility_onboarding_explanation">リモートサポート中に子デバイスからこの端末をタップ・スワイプ・文字入力できるようにするため、ユーザー補助サービスの許可が必要です。設定は最初の一回だけで大丈夫です。</string>
+    <string name="accessibility_onboarding_explanation">サポート中に相手がこの端末を操作するために許可が必要です。\nボタンから移動した先でファミリーリモートを探しタップし、一番上のファミリーリモートを使用をオンにして許可してください。</string>
     <string name="accessibility_onboarding_open_settings">ユーザー補助の設定を開く</string>
     <string name="accessibility_onboarding_status_granted">状態：有効</string>
     <string name="accessibility_onboarding_status_not_granted">状態：まだ有効になっていません</string>
@@ -60,7 +60,7 @@
     <string name="parent_pairing_manual_code_label">手動入力コード：%1$s</string>
     <string name="parent_pairing_waiting">子デバイスがこのコードを読み取るのを待っています…</string>
     <string name="parent_pairing_success">ペアリングが完了しました！</string>
-    <string name="parent_pairing_tailscale_missing">この端末でTailscaleが見つかりませんでした。Tailscaleアプリをインストールし、家族のtailnetにサインインしてから、もう一度お試しください。</string>
+    <string name="parent_pairing_tailscale_missing">「Tailscaleを開く」を押して、Tailscaleアプリをインストールしてください。インストールできたらTailscaleアプリを開いて家族のtailnetにサインインし、この画面に戻って「再試行」を押してください。</string>
     <string name="parent_pairing_open_tailscale">Tailscaleを開く</string>
     <string name="parent_pairing_error_timeout">ペアリングがタイムアウトしました。もう一度お試しください。</string>
     <string name="parent_pairing_error_generic">ペアリングに失敗しました：%1$s</string>
