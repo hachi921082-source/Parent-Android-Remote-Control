@@ -7,6 +7,7 @@ import android.provider.Settings
 import androidx.appcompat.app.AppCompatActivity
 import com.familyremote.app.R
 import com.familyremote.app.common.AccessibilityPermissionMonitor
+import com.familyremote.app.common.applyNavigationBarBottomInsetPadding
 import com.familyremote.app.common.applyStatusBarTopInsetPadding
 import com.familyremote.app.databinding.ActivityAccessibilityOnboardingBinding
 
@@ -29,6 +30,7 @@ class AccessibilityOnboardingActivity : AppCompatActivity() {
         binding = ActivityAccessibilityOnboardingBinding.inflate(layoutInflater)
         setContentView(binding.root)
         binding.root.applyStatusBarTopInsetPadding()
+        binding.continueButton.applyNavigationBarBottomInsetPadding()
 
         binding.openSettingsButton.setOnClickListener {
             startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
