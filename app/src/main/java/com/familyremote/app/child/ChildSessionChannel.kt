@@ -16,16 +16,19 @@ import java.net.Socket
 
 /**
  * Reads inbound frames on an already-established (`Live`) session socket. Child-side counterpart
- * of `ParentSessionServer`'s read loop -- dispatches `STATUS_HEARTBEAT`/`STATUS_EVENT` (§5) and
- * `SESSION_END`, and hands anything else (`VIDEO_FRAME`, `ACCESSIBILITY_STATUS`,
- * `TEXT_INJECT_FAILED`) unparsed to [onOtherMessage], owned by other, not-yet-built features
- * (remote-input-control) -- mirrors `ParentSessionServer`'s "unhandled by construction" pattern.
+ * of `ParentSessionServer`'s read loop -- dispatches `STATUS_HEARTBEAT`/`STATUS_EVENT` (§5),
+ * `SESSION_END`, and `SESSION_BUSY` (docs/plans/single-session-enforcement/PLAN.md §6, another
+ * terminal signal recognized the same way as `SESSION_END`), and hands anything else
+ * (`VIDEO_FRAME`, `ACCESSIBILITY_STATUS`, `TEXT_INJECT_FAILED`) unparsed to [onOtherMessage], owned
+ * by other, not-yet-built features (remote-input-control) -- mirrors `ParentSessionServer`'s
+ * "unhandled by construction" pattern.
  */
 class ChildSessionChannel(
     private val socket: Socket,
     private val onAnyMessage: () -> Unit,
     private val onStatusUpdate: (StatusPayload) -> Unit,
     private val onSessionEnded: (reason: String) -> Unit,
+    private val onSessionBusy: () -> Unit = {},
     private val onOtherMessage: (MessageFrame) -> Unit = {}
 ) {
     @Volatile
@@ -51,6 +54,10 @@ class ChildSessionChannel(
                     MessageType.SESSION_END -> {
                         val end = SessionEndPayload.parse(frame.payloadAsUtf8String())
                         onSessionEnded(end.reason)
+                        return
+                    }
+                    MessageType.SESSION_BUSY -> {
+                        onSessionBusy()
                         return
                     }
                     else -> onOtherMessage(frame)
