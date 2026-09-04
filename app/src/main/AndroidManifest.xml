@@ -31,9 +31,9 @@
          reliably grantable/effective on the target device is an open, tracked verification item
          (see docs/QA.md), not something this manifest declaration alone resolves. -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
-    <!-- MyOsSetupChecklistActivity's battery-optimization-exemption request (issue #26): lets the
-         "open battery settings" button deep-link straight to the system's unrestricted-battery
-         dialog for this app, instead of the generic App Info screen. -->
+    <!-- AccessibilityOnboardingActivity's battery-optimization-exemption request (issue #26):
+         lets the "open battery settings" button deep-link straight to the system's
+         unrestricted-battery dialog for this app, instead of the generic App Info screen. -->
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
     <application
@@ -54,12 +54,11 @@
             </intent-filter>
         </activity>
 
-        <!-- Onboarding wizard (parent-operated steps: accessibility walkthrough,
-             MyOS checklist, pairing/QR display). Chained via ActivityResultLauncher,
-             see docs/plans/pairing-and-onboarding/PLAN.md sections 5-6. -->
+        <!-- Onboarding wizard (parent-operated steps: accessibility + battery/background setup
+             checklist merged into one screen per issue #27, then pairing/QR display). Chained via
+             ActivityResultLauncher, see docs/plans/pairing-and-onboarding/PLAN.md sections 5-6. -->
         <activity android:name=".pairing.OnboardingWizardActivity" android:exported="false" />
         <activity android:name=".pairing.AccessibilityOnboardingActivity" android:exported="false" />
-        <activity android:name=".pairing.MyOsSetupChecklistActivity" android:exported="false" />
         <activity android:name=".pairing.ParentPairingActivity" android:exported="false" />
 
         <!-- Child-side pairing flow. -->

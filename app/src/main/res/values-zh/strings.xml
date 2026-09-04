@@ -40,16 +40,12 @@
 
     <!-- Accessibility onboarding -->
     <string name="accessibility_onboarding_title">启用无障碍服务</string>
-    <string name="accessibility_onboarding_explanation">在支持期间，需要授权以便对方操作此设备。\n点击下方按钮后，找到并点按"家庭远程助手"，将顶部的"使用家庭远程助手"开启并允许。</string>
     <string name="accessibility_onboarding_open_settings">打开无障碍设置</string>
     <string name="accessibility_onboarding_status_granted">状态：已启用</string>
     <string name="accessibility_onboarding_status_not_granted">状态：尚未启用</string>
 
-    <!-- MyOS setup checklist -->
+    <!-- MyOS setup checklist (merged into AccessibilityOnboardingActivity, issue #27) -->
     <string name="myos_checklist_title">后台运行设置</string>
-    <string name="myos_checklist_intro_specific">此设备可能会强行关闭在后台运行的应用。请完成以下一次性设置，以确保远程共享能持续正常工作：</string>
-    <string name="myos_checklist_intro_generic">如果此手机会强行关闭后台应用，以下设置可能有助于让共享会话保持稳定：</string>
-    <string name="myos_checklist_step_battery">请允许本应用不受限制地使用电量（设置 → 应用 → 家庭远程助手 → 电池 → 无限制）。</string>
     <string name="myos_checklist_step_battery_button">打开应用电池设置</string>
     <string name="myos_checklist_battery_status_granted">状态：已允许无限制使用电池</string>
     <string name="myos_checklist_battery_status_not_granted">状态：尚未允许</string>

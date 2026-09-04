@@ -40,16 +40,12 @@
 
     <!-- Accessibility onboarding -->
     <string name="accessibility_onboarding_title">Enable Accessibility Service</string>
-    <string name="accessibility_onboarding_explanation">Permission is needed so the other party can operate this device during support.\nFrom the button below, find Family Remote, tap it, then turn on and allow \"Use Family Remote\" at the top.</string>
     <string name="accessibility_onboarding_open_settings">Open Accessibility Settings</string>
     <string name="accessibility_onboarding_status_granted">Status: enabled</string>
     <string name="accessibility_onboarding_status_not_granted">Status: not enabled yet</string>
 
-    <!-- MyOS setup checklist -->
+    <!-- MyOS setup checklist (merged into AccessibilityOnboardingActivity, issue #27) -->
     <string name="myos_checklist_title">Background run settings</string>
-    <string name="myos_checklist_intro_specific">This device may aggressively close this app when it is in the background. Complete these one-time steps so remote sharing keeps working:</string>
-    <string name="myos_checklist_intro_generic">If this phone aggressively closes background apps, these settings may help keep sharing sessions stable:</string>
-    <string name="myos_checklist_step_battery">Allow unrestricted battery usage for this app (Settings → Apps → Family Remote → Battery → Unrestricted).</string>
     <string name="myos_checklist_step_battery_button">Open app battery settings</string>
     <string name="myos_checklist_battery_status_granted">Status: unrestricted battery usage is allowed</string>
     <string name="myos_checklist_battery_status_not_granted">Status: not allowed yet</string>
