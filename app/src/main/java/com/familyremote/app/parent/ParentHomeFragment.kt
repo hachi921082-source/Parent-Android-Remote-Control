@@ -10,8 +10,8 @@ import com.familyremote.app.databinding.FragmentParentHomeBinding
 import com.familyremote.app.pairing.OnboardingWizardActivity
 
 /**
- * Parent-mode tab, default tab shown on launch (spec.md §4). Exposes the pairing entry point
- * ("Pair a new child device" -> [OnboardingWizardActivity]) and the "Show Screen" entry point,
+ * Parent-mode tab, default tab shown on launch (spec.md §4). Exposes the initial-setup/pairing
+ * entry point ("Initial Setup" -> [OnboardingWizardActivity]) and the "Show Screen" entry point,
  * which invokes the same [ShareStartTrampolineActivity] the home-screen widget uses -- this is
  * also how the 3-tap baseline flow (detailed-spec §4) is realized on setups without the widget
  * placed. See docs/plans/screen-sharing-core/PLAN.md §3 step 5.
