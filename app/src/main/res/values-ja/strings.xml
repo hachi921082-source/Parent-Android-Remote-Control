@@ -90,6 +90,7 @@
     <string name="session_reconnecting_banner">再接続しています…</string>
     <string name="session_disconnected_title">%1$sとの接続が切れました。続くようであれば、もう一度操作してもらってください。</string>
     <string name="session_disconnected_back">デバイス一覧に戻る</string>
+    <string name="session_rejected_title">%1$sには既に別の端末が接続されています。そのセッションが終了してから、もう一度お試しください。</string>
     <string name="session_status_placeholder">接続しました。状態情報を待っています…</string>
     <string name="session_status_wifi_connected">Wi-Fi：接続済み</string>
     <string name="session_status_wifi_disconnected">Wi-Fi：未接続</string>
