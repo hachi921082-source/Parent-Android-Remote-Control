@@ -32,6 +32,15 @@ public partial class LiveView : UserControl
         // 追加のリセットロジックなしに満たす。
         _ = new ZoomController(Video);
 
+        // Level>1では拡大されたFrameImageがVideoView自身の境界をはみ出す（詰まっている軸、
+        // ZoomedContentRectCalculatorのコメント参照）。WPFのPanel（VideoView.xaml/LiveView.xaml
+        // 双方のGrid）はデフォルトで子要素をクリップしないため、Video自身にClipToBounds=trueを
+        // 明示しないとはみ出し分がVideoSlotの外（TextInputSlot側）まで描画されてしまう
+        // （input-relayがTextInputSlotへ実高さのTextInputBarを配置した時点で顕在化する幾何バグ、
+        // レビュー指摘）。VideoViewのSecureHintButtonはVideoView自身の境界内（bottom-right, Margin=8）
+        // に位置するため、この境界でのクリップでは一切影響を受けない。
+        Video.ClipToBounds = true;
+
         StatusPanel.Render(store.LatestStatus);
         RenderBanner(store.State);
 
