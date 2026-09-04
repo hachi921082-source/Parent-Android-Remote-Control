@@ -52,9 +52,6 @@
     <string name="myos_checklist_step_battery">请允许本应用不受限制地使用电量（设置 → 应用 → 家庭远程助手 → 电池 → 无限制）。</string>
     <string name="myos_checklist_step_battery_button">打开应用电池设置</string>
     <string name="myos_checklist_step_autostart">设置 → 应用管理 → 自启动管理 中启用“家庭远程助手”。（此设备暂无直接跳转链接，请手动前往设置。）</string>
-    <string name="myos_checklist_checkbox_generic">我已了解</string>
-    <string name="myos_checklist_checkbox_battery">我已完成电池设置</string>
-    <string name="myos_checklist_checkbox_autostart">我已完成自启动设置</string>
 
     <!-- Parent pairing (QR display) -->
     <string name="parent_pairing_title">配对新的子女设备</string>
