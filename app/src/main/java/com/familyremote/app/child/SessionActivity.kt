@@ -73,6 +73,7 @@ class SessionActivity : AppCompatActivity() {
         }
         binding.retryButton.setOnClickListener { viewModel.retryWaiting() }
         binding.disconnectedBackButton.setOnClickListener { finish() }
+        binding.rejectedBackButton.setOnClickListener { finish() }
 
         setUpInputUi()
 
@@ -152,6 +153,7 @@ class SessionActivity : AppCompatActivity() {
         binding.liveSection.visibility =
             if (state is ConnectionState.Live || state is ConnectionState.Reconnecting) View.VISIBLE else View.GONE
         binding.disconnectedSection.visibility = if (state is ConnectionState.Disconnected) View.VISIBLE else View.GONE
+        binding.rejectedSection.visibility = if (state is ConnectionState.Rejected) View.VISIBLE else View.GONE
         binding.reconnectingBanner.visibility = if (state is ConnectionState.Reconnecting) View.VISIBLE else View.GONE
 
         when (state) {
@@ -159,6 +161,8 @@ class SessionActivity : AppCompatActivity() {
                 binding.waitingText.text = getString(R.string.session_waiting_title, state.pairing.label)
             is ConnectionState.Disconnected ->
                 binding.disconnectedText.text = getString(R.string.session_disconnected_title, state.pairing.label)
+            is ConnectionState.Rejected ->
+                binding.rejectedText.text = getString(R.string.session_rejected_title, state.pairing.label)
             // Fresh Live entry (initial connect, or reconnect-then-live) -- the previous
             // inputAvailable value belonged to a now-superseded connection (PLAN.md §7).
             is ConnectionState.Live -> inputAvailabilityViewModel.reset()
