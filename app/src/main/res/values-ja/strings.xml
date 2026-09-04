@@ -40,16 +40,12 @@
 
     <!-- Accessibility onboarding -->
     <string name="accessibility_onboarding_title">ユーザー補助サービスを有効にする</string>
-    <string name="accessibility_onboarding_explanation">サポート中に相手がこの端末を操作するために許可が必要です。\nボタンから移動した先でファミリーリモートを探しタップし、一番上のファミリーリモートを使用をオンにして許可してください。</string>
     <string name="accessibility_onboarding_open_settings">ユーザー補助の設定を開く</string>
     <string name="accessibility_onboarding_status_granted">状態：有効</string>
     <string name="accessibility_onboarding_status_not_granted">状態：まだ有効になっていません</string>
 
-    <!-- MyOS setup checklist -->
+    <!-- MyOS setup checklist (merged into AccessibilityOnboardingActivity, issue #27) -->
     <string name="myos_checklist_title">バックグラウンド動作の設定</string>
-    <string name="myos_checklist_intro_specific">この端末はバックグラウンドのアプリを強制的に終了させることがあります。リモート共有が正しく動き続けるよう、次の設定を一度だけ行ってください。</string>
-    <string name="myos_checklist_intro_generic">この端末がバックグラウンドのアプリを強制的に終了させる場合、次の設定を行うと共有が安定しやすくなります。</string>
-    <string name="myos_checklist_step_battery">このアプリのバッテリー使用を無制限に許可してください（設定 → アプリ → ファミリーリモート → バッテリー → 無制限）。</string>
     <string name="myos_checklist_step_battery_button">アプリのバッテリー設定を開く</string>
     <string name="myos_checklist_battery_status_granted">状態：バッテリーの無制限使用が許可されています</string>
     <string name="myos_checklist_battery_status_not_granted">状態：まだ許可されていません</string>
