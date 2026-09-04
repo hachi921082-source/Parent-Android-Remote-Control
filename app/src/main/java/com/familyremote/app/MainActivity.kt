@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
 import com.familyremote.app.child.ChildHomeFragment
+import com.familyremote.app.common.applyStatusBarTopInsetPadding
 import com.familyremote.app.databinding.ActivityMainBinding
 import com.familyremote.app.parent.ParentHomeFragment
 
@@ -20,6 +21,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        binding.root.applyStatusBarTopInsetPadding()
 
         binding.bottomNavigation.setOnItemSelectedListener { item ->
             val fragment = when (item.itemId) {
