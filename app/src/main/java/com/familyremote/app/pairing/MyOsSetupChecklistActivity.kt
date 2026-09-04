@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.os.PowerManager
 import android.provider.Settings
 import androidx.appcompat.app.AppCompatActivity
 import com.familyremote.app.R
@@ -35,13 +36,22 @@ class MyOsSetupChecklistActivity : AppCompatActivity() {
             if (isRecognizedDevice) R.string.myos_checklist_intro_specific else R.string.myos_checklist_intro_generic
         )
 
-        // The battery-usage deep link (ACTION_APPLICATION_DETAILS_SETTINGS) is a standard Android
-        // intent that works on any device, so it's offered regardless of device recognition.
+        // Deep-links straight to the system's "allow unrestricted battery usage" dialog for this
+        // app (issue #26) -- falls back to the generic App Info screen if that intent can't be
+        // resolved (some OEM builds may not support it).
         binding.batterySettingsButton.setOnClickListener {
-            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                data = Uri.fromParts("package", packageName, null)
+            val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                data = Uri.parse("package:$packageName")
             }
-            startActivity(intent)
+            if (intent.resolveActivity(packageManager) != null) {
+                startActivity(intent)
+            } else {
+                startActivity(
+                    Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                        data = Uri.fromParts("package", packageName, null)
+                    }
+                )
+            }
         }
 
         if (isRecognizedDevice) {
@@ -53,6 +63,23 @@ class MyOsSetupChecklistActivity : AppCompatActivity() {
             setResult(Activity.RESULT_OK)
             finish()
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        updateBatteryStatus()
+    }
+
+    private fun updateBatteryStatus() {
+        val powerManager = getSystemService(POWER_SERVICE) as PowerManager
+        val ignoringOptimizations = powerManager.isIgnoringBatteryOptimizations(packageName)
+        binding.batteryStatusText.setText(
+            if (ignoringOptimizations) {
+                R.string.myos_checklist_battery_status_granted
+            } else {
+                R.string.myos_checklist_battery_status_not_granted
+            }
+        )
     }
 
     private fun markAcknowledged() {
