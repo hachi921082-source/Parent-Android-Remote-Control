@@ -62,8 +62,9 @@
     <string name="parent_pairing_manual_code_label">手動入力コード：%1$s</string>
     <string name="parent_pairing_waiting">子デバイスがこのコードを読み取るのを待っています…</string>
     <string name="parent_pairing_success">ペアリングが完了しました！</string>
-    <string name="parent_pairing_tailscale_missing">「Tailscaleを開く」を押して、Tailscaleアプリをインストールしてください。インストールできたらTailscaleアプリを開いて家族のtailnetにサインインし、この画面に戻って「再試行」を押してください。</string>
-    <string name="parent_pairing_open_tailscale">Tailscaleを開く</string>
+    <string name="parent_pairing_tailscale_missing">「インストール」を押して、Tailscaleアプリをインストールしてください。インストールできたら「開く」を押してアプリを開き、家族のtailnetにサインインしてから、この画面に戻って「再試行」を押してください。</string>
+    <string name="parent_pairing_install_tailscale">インストール</string>
+    <string name="parent_pairing_open_tailscale">開く</string>
     <string name="parent_pairing_error_timeout">ペアリングがタイムアウトしました。もう一度お試しください。</string>
     <string name="parent_pairing_error_generic">ペアリングに失敗しました：%1$s</string>
 
