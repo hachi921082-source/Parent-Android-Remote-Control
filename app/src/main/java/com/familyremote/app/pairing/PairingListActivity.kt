@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.commit
 import com.familyremote.app.R
+import com.familyremote.app.common.applyStatusBarTopInsetPadding
 
 /**
  * Thin standalone host for [PairingListFragment], so other features (e.g.
@@ -16,6 +17,7 @@ class PairingListActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_pairing_list_host)
+        findViewById<android.view.View>(R.id.fragmentContainer).applyStatusBarTopInsetPadding()
 
         if (savedInstanceState == null) {
             supportFragmentManager.commit {

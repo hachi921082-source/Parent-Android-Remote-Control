@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.familyremote.app.R
 import com.familyremote.app.common.ConnectionState
+import com.familyremote.app.common.applyStatusBarTopInsetPadding
 import com.familyremote.app.databinding.ActivitySessionBinding
 import com.familyremote.app.net.MessageFrame
 import com.familyremote.app.net.MessageType
@@ -50,6 +51,11 @@ class SessionActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivitySessionBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        // Root stays edge-to-edge (video should mirror the parent's full screen); only the
+        // top-anchored overlay chrome gets the status-bar inset, per issue #22.
+        binding.topOverlayBannerContainer.applyStatusBarTopInsetPadding()
+        binding.liveStatusText.applyStatusBarTopInsetPadding()
+        binding.flagSecureHelpButton.applyStatusBarTopInsetPadding()
 
         val pairingId = intent.getStringExtra(EXTRA_PAIRING_ID)
             ?.let { runCatching { UUID.fromString(it) }.getOrNull() }

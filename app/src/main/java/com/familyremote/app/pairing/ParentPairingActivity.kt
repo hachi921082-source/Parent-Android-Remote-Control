@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.familyremote.app.R
 import com.familyremote.app.common.Constants
+import com.familyremote.app.common.applyStatusBarTopInsetPadding
 import com.familyremote.app.databinding.ActivityParentPairingBinding
 import com.google.zxing.BarcodeFormat
 import com.journeyapps.barcodescanner.BarcodeEncoder
@@ -28,6 +29,7 @@ class ParentPairingActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityParentPairingBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        binding.root.applyStatusBarTopInsetPadding()
         repository = PairingRepository(this)
 
         binding.retryButton.setOnClickListener { startPairingAttempt() }

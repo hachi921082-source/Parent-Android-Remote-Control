@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.familyremote.app.R
+import com.familyremote.app.common.applyStatusBarTopInsetPadding
 import com.familyremote.app.databinding.ActivityChildPairingScanBinding
 import com.google.zxing.integration.android.IntentIntegrator
 import kotlinx.coroutines.launch
@@ -32,6 +33,7 @@ class ChildPairingScanActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityChildPairingScanBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        binding.root.applyStatusBarTopInsetPadding()
 
         binding.grantPermissionButton.setOnClickListener {
             requestCameraPermission.launch(Manifest.permission.CAMERA)
