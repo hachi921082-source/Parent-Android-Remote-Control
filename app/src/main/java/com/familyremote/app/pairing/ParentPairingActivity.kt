@@ -1,8 +1,6 @@
 package com.familyremote.app.pairing
 
 import android.app.Activity
-import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
@@ -18,6 +16,12 @@ import kotlinx.coroutines.launch
 /**
  * Onboarding step 4 -- parent side (PLAN.md §4 step 1). Resolves this device's Tailscale
  * address, starts the temporary pairing listener, and displays the QR code the child scans.
+ *
+ * Tailscale install/connect is no longer handled here -- [OnboardingWizardActivity]'s preceding
+ * setup step already gates on it being connected before this screen is ever reached (issue #28).
+ * A null [TailscaleAddressResolver.resolve] result here is therefore an edge case (a disconnect in
+ * the brief window since then), shown as a status message with no dedicated recovery action --
+ * backing out to the setup screen re-checks and fixes it.
  */
 class ParentPairingActivity : AppCompatActivity() {
 
@@ -33,8 +37,6 @@ class ParentPairingActivity : AppCompatActivity() {
         repository = PairingRepository(this)
 
         binding.retryButton.setOnClickListener { startPairingAttempt() }
-        binding.installTailscaleButton.setOnClickListener { openTailscalePlayStoreListing() }
-        binding.openTailscaleButton.setOnClickListener { openTailscaleApp() }
         binding.doneButton.setOnClickListener {
             setResult(Activity.RESULT_OK)
             finish()
@@ -50,8 +52,6 @@ class ParentPairingActivity : AppCompatActivity() {
 
     private fun startPairingAttempt() {
         binding.retryButton.visibility = View.GONE
-        binding.installTailscaleButton.visibility = View.GONE
-        binding.openTailscaleButton.visibility = View.GONE
         binding.doneButton.visibility = View.GONE
         binding.qrImageView.visibility = View.GONE
         binding.hostAddressText.visibility = View.GONE
@@ -60,9 +60,6 @@ class ParentPairingActivity : AppCompatActivity() {
         val parentHost = TailscaleAddressResolver.resolve()
         if (parentHost == null) {
             binding.statusText.setText(R.string.parent_pairing_tailscale_missing)
-            binding.installTailscaleButton.visibility = View.VISIBLE
-            binding.openTailscaleButton.visibility = View.VISIBLE
-            binding.retryButton.visibility = View.VISIBLE
             return
         }
 
@@ -137,26 +134,8 @@ class ParentPairingActivity : AppCompatActivity() {
         binding.manualCodeText.visibility = View.VISIBLE
     }
 
-    private fun openTailscalePlayStoreListing() {
-        startActivity(
-            Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$TAILSCALE_PACKAGE_NAME"))
-        )
-    }
-
-    private fun openTailscaleApp() {
-        val launchIntent = packageManager.getLaunchIntentForPackage(TAILSCALE_PACKAGE_NAME)
-        if (launchIntent != null) {
-            startActivity(launchIntent)
-        } else {
-            // Not installed yet -- same destination as installTailscaleButton, since tapping
-            // "Open" before installing is a plausible mis-click for an elderly-adjacent user.
-            openTailscalePlayStoreListing()
-        }
-    }
-
     companion object {
         private const val QR_SIZE_PX = 720
-        private const val TAILSCALE_PACKAGE_NAME = "com.tailscale.ipn"
         private const val MANUAL_CODE_GROUP_SIZE = 4
     }
 }
