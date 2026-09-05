@@ -9,6 +9,7 @@
     <!-- Parent home -->
     <string name="parent_home_title">親モード</string>
     <string name="parent_home_show_screen_button">画面を見せる</string>
+    <string name="parent_home_stop_screen_button">共有を終了する</string>
     <string name="parent_home_pair_button">初期設定をする</string>
 
     <!-- Show Screen widget (placeholder icon/label; see ShowScreenWidgetProvider) -->
@@ -18,6 +19,7 @@
     <string name="screen_share_notification_channel_name">画面共有</string>
     <string name="screen_share_notification_title">画面を共有しています</string>
     <string name="screen_share_notification_text">この端末の画面が共有されています。タップしてアプリを開きます。</string>
+    <string name="screen_share_notification_stop_action">共有を終了</string>
 
     <!-- Child home / pairing list -->
     <string name="pairing_list_title">ペアリング済みの親デバイス</string>
@@ -28,6 +30,13 @@
     <string name="pairing_rename_dialog_title">デバイス名を変更</string>
     <string name="pairing_delete_dialog_title">このペアリングを削除しますか？</string>
     <string name="pairing_delete_dialog_message">このデバイスからペアリング情報が削除されます。親デバイスには通知されません。</string>
+
+    <!-- Authorized-viewer management (issue #31) -->
+    <string name="parent_home_manage_viewers_button">視聴端末を管理</string>
+    <string name="authorized_child_list_title">この画面の視聴を許可した端末</string>
+    <string name="authorized_child_list_empty">現在、この画面の視聴を許可されている端末はありません。</string>
+    <string name="authorized_child_delete_dialog_title">この端末を削除しますか？</string>
+    <string name="authorized_child_delete_dialog_message">この端末はこの画面を視聴できなくなります。必要であれば後で再度ペアリングできます。</string>
     <string name="action_ok">OK</string>
     <string name="action_cancel">キャンセル</string>
     <string name="action_delete">削除</string>
