@@ -28,6 +28,7 @@ class ParentPairingActivity : AppCompatActivity() {
     private lateinit var binding: ActivityParentPairingBinding
     private lateinit var repository: PairingRepository
     private var pairingJob: kotlinx.coroutines.Job? = null
+    private var pairingServer: PairingServer? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,10 +48,16 @@ class ParentPairingActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        // stop() first: Job.cancel() alone can't interrupt a thread already blocked in
+        // ServerSocket.accept() (see PairingServer.stop()'s doc comment) -- without this, the
+        // listen port stays bound until the next connection or the accept timeout, so an
+        // immediate re-entry into this screen could hit "Address already in use".
+        pairingServer?.stop()
         pairingJob?.cancel()
     }
 
     private fun startPairingAttempt() {
+        pairingServer?.stop()
         binding.retryButton.visibility = View.GONE
         binding.doneButton.visibility = View.GONE
         binding.qrImageView.visibility = View.GONE
@@ -80,6 +87,7 @@ class ParentPairingActivity : AppCompatActivity() {
 
         pairingJob = lifecycleScope.launch {
             val server = PairingServer(repository)
+            pairingServer = server
             val result = server.listenForHandshake(
                 bindAddress = parentHost,
                 port = Constants.PAIRING_PORT,
