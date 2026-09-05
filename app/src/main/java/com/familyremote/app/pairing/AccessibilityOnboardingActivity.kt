@@ -133,13 +133,14 @@ class AccessibilityOnboardingActivity : AppCompatActivity() {
         if (launchIntent != null) {
             startActivity(launchIntent)
         } else {
-            // Not installed yet -- same destination as installTailscaleButton, since tapping
-            // "Open Tailscale" before installing is a plausible mis-click.
-            openTailscalePlayStoreListing()
+            // Not installed yet -- send to Tailscale's own website rather than the Play Store
+            // listing (installTailscaleButton already covers that destination).
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(TAILSCALE_HOMEPAGE_URL)))
         }
     }
 
     companion object {
         private const val TAILSCALE_PACKAGE_NAME = "com.tailscale.ipn"
+        private const val TAILSCALE_HOMEPAGE_URL = "https://tailscale.com/"
     }
 }
