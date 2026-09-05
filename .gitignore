@@ -10,3 +10,7 @@
 local.properties
 /app/build
 /app/release
+
+# Debug APK copies saved to the repo root on request (docs/HANDOFF.md) -- build artifacts, not
+# source; never intended to be committed.
+/*.apk
