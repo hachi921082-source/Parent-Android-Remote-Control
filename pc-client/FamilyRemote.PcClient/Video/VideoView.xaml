@@ -11,9 +11,11 @@
         code-behind on every recompute: WPF's own layout system does the black-bar positioning
         (background of the outer Grid stays black), no manual pixel compositing needed.
 
-        SecureHintButton is a small, always-available FLAG_SECURE hint (decode.PLAN.md §9): no
-        detection logic exists (or can exist) for that case, so it's a static hover tooltip, not a
-        dynamically shown/hidden affordance.
+        SecureHintButton is a FLAG_SECURE hint (decode.PLAN.md §9), shown only while the decoded
+        video actually looks solid black (issue #43, code-behind: VideoView.xaml.cs's
+        IsFrameBlank/IsContentBlank). This comment previously claimed no detection logic exists or
+        can exist for that case; that assumption turned out to be wrong, once Android's own
+        issue #39 proved the same detection was possible there too.
 
         Focusable="True": lets this control receive ordinary WPF keyboard focus (mouse click,
         Tab-navigation, or the explicit Focus() call Session/LiveView.xaml.cs makes on Loaded) so
@@ -26,7 +28,7 @@
         <Button x:Name="SecureHintButton" Content="&#8505;" Width="24" Height="24"
                 HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="8"
                 Foreground="White" Background="#55000000" BorderThickness="0"
-                FontWeight="Bold" Cursor="Help"
+                FontWeight="Bold" Cursor="Help" Visibility="Collapsed"
                 ToolTip="{x:Static res:Strings.VideoFlagSecureHint}" />
     </Grid>
 </UserControl>
