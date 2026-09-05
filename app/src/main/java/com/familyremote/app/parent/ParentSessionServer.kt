@@ -1,5 +1,6 @@
 package com.familyremote.app.parent
 
+import android.util.Log
 import com.familyremote.app.net.MessageFrame
 import com.familyremote.app.net.MessageType
 import com.familyremote.app.net.SessionEndPayload
@@ -58,6 +59,11 @@ class ParentSessionServer(
             readJob = scope.launch(Dispatchers.IO) { readLoop(newSocket) }
             true
         } catch (e: IOException) {
+            // No visibility anywhere else into why a dial failed (ScreenShareForegroundService's
+            // retry loop is silent, and this app surfaces no per-child connection error to the
+            // parent's UI) -- found this gap while diagnosing a real "child stuck on Waiting"
+            // report where the actual cause turned out to be undiagnosable without this.
+            Log.w(TAG, "Failed to connect to child ${child.childId} at ${child.childHost}:$port", e)
             false
         }
     }
@@ -126,5 +132,6 @@ class ParentSessionServer(
 
     companion object {
         private const val CONNECT_TIMEOUT_MS = 10_000
+        private const val TAG = "ParentSessionServer"
     }
 }
