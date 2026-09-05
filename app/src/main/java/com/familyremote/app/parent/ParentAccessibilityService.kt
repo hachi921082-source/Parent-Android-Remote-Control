@@ -2,9 +2,12 @@ package com.familyremote.app.parent
 
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.GestureDescription
+import android.graphics.PixelFormat
 import android.graphics.Path
+import android.graphics.PointF
 import android.os.Build
 import android.os.Bundle
+import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import com.familyremote.app.common.AccessibilityPermissionMonitor
@@ -33,9 +36,17 @@ class ParentAccessibilityService : AccessibilityService() {
     private val serviceJob = SupervisorJob()
     private val serviceScope = CoroutineScope(Dispatchers.Default + serviceJob)
 
+    /** Issue #35: echoes the child's tap/swipe feedback onto the parent's own real screen, so an
+     * elderly parent can see where they're being guided to tap. A `TYPE_ACCESSIBILITY_OVERLAY`
+     * window -- the one overlay type an `AccessibilityService` may add without the
+     * `SYSTEM_ALERT_WINDOW` permission -- added for this service's whole lifetime rather than
+     * per-tap, so a burst of taps never races window add/remove. */
+    private var tapMarkerOverlay: ParentTapMarkerOverlay? = null
+
     override fun onServiceConnected() {
         super.onServiceConnected()
         ScreenShareForegroundService.attachAccessibilityService(this)
+        addTapMarkerOverlay()
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
@@ -48,7 +59,30 @@ class ParentAccessibilityService : AccessibilityService() {
     override fun onDestroy() {
         super.onDestroy()
         ScreenShareForegroundService.detachAccessibilityService(this)
+        removeTapMarkerOverlay()
         serviceJob.cancel()
+    }
+
+    private fun addTapMarkerOverlay() {
+        val overlay = ParentTapMarkerOverlay(this)
+        val params = WindowManager.LayoutParams(
+            WindowManager.LayoutParams.MATCH_PARENT,
+            WindowManager.LayoutParams.MATCH_PARENT,
+            WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
+                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+            PixelFormat.TRANSLUCENT
+        )
+        runCatching { getSystemService(WindowManager::class.java).addView(overlay, params) }
+            .onSuccess { tapMarkerOverlay = overlay }
+        // A failure here (e.g. no display available yet) just means no marker echo this session --
+        // dispatchGesture itself doesn't depend on this overlay, so input control still works.
+    }
+
+    private fun removeTapMarkerOverlay() {
+        tapMarkerOverlay?.let { runCatching { getSystemService(WindowManager::class.java).removeView(it) } }
+        tapMarkerOverlay = null
     }
 
     /** Called by [ScreenShareForegroundService] for every `INPUT_TAP`/`INPUT_SWIPE`/`INPUT_TEXT`
@@ -69,6 +103,7 @@ class ParentAccessibilityService : AccessibilityService() {
         // Pre-flight check (§7) -- catches the split-second-revocation race between an inbound
         // frame arriving and the dispatch call below.
         if (!AccessibilityPermissionMonitor.isGranted(this)) return
+        tapMarkerOverlay?.showMarker(listOf(PointF(payload.x.toFloat(), payload.y.toFloat())))
         val path = Path().apply { moveTo(payload.x.toFloat(), payload.y.toFloat()) }
         val gesture = GestureDescription.Builder()
             .addStroke(GestureDescription.StrokeDescription(path, 0, TAP_DURATION_MS))
@@ -80,6 +115,7 @@ class ParentAccessibilityService : AccessibilityService() {
         if (!AccessibilityPermissionMonitor.isGranted(this)) return
         val points = payload.pathPoints
         if (points.isEmpty()) return
+        tapMarkerOverlay?.showMarker(points.map { PointF(it.x.toFloat(), it.y.toFloat()) })
         val path = Path().apply {
             moveTo(points.first().x.toFloat(), points.first().y.toFloat())
             points.drop(1).forEach { lineTo(it.x.toFloat(), it.y.toFloat()) }
@@ -90,6 +126,16 @@ class ParentAccessibilityService : AccessibilityService() {
             .build()
         dispatchGesture(gesture, null, null)
     }
+
+    /**
+     * Issue #38: whether the parent currently has a focused editable field -- the same check
+     * [handleText] already makes before injecting text, exposed for
+     * [ScreenShareForegroundService]'s periodic `ACCESSIBILITY_STATUS` ticker so the child can show
+     * its message-input bar only when the parent could actually receive text right now.
+     */
+    fun hasFocusedInputField(): Boolean =
+        AccessibilityPermissionMonitor.isGranted(this) &&
+            rootInActiveWindow?.findFocus(AccessibilityNodeInfo.FOCUS_INPUT) != null
 
     private fun handleText(payload: InputTextPayload) {
         if (!AccessibilityPermissionMonitor.isGranted(this)) return
