@@ -60,6 +60,7 @@
         <activity android:name=".pairing.OnboardingWizardActivity" android:exported="false" />
         <activity android:name=".pairing.AccessibilityOnboardingActivity" android:exported="false" />
         <activity android:name=".pairing.ParentPairingActivity" android:exported="false" />
+        <activity android:name=".pairing.AuthorizedChildListActivity" android:exported="false" />
 
         <!-- Child-side pairing flow. -->
         <activity android:name=".pairing.ChildPairingScanActivity" android:exported="false" />
