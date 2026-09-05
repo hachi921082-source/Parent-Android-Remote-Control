@@ -13,7 +13,8 @@ object Constants {
     const val MISSED_HEARTBEAT_THRESHOLD = 3
     const val RECONNECT_WINDOW_MS = 60_000L
     const val ACCESSIBILITY_PERIODIC_CHECK_INTERVAL_MS = 30_000L
-    const val TAP_MARKER_FADE_MS = 300L
+    /** Was 300ms; raised per issue #44 -- too brief for an elderly user to register/read. */
+    const val TAP_MARKER_FADE_MS = 600L
     const val SESSION_PORT = 47321
 
     // --- Pairing (this feature). ---
