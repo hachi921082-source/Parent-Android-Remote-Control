@@ -13,6 +13,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.net.InetSocketAddress
@@ -42,13 +44,35 @@ class ParentSessionServer(
     private var readJob: Job? = null
 
     /**
+     * Guards every socket write (issue #33 follow-up): the ordered per-service video-frame queue
+     * only serialized `onNalUnit`'s own emissions against each other -- it did not stop
+     * [sendSessionEndAndClose] (called directly from `stopSession`, a separate coroutine) from
+     * writing to the very same socket concurrently with an in-flight video-frame write, which
+     * corrupts the `MessageFrame` framing on the wire exactly like the original bug (observed
+     * live: tapping the new stop-sharing button crashed the child with the same "Invalid frame
+     * length" error). Every write in this class must go through this lock.
+     */
+    private val writeMutex = Mutex()
+
+    /**
      * Dials the child once (no retry) -- the caller ([ScreenShareForegroundService]) drives the
      * §7 reconnect-with-backoff loop by invoking this again on failure.
      */
     suspend fun connect(scope: CoroutineScope): Boolean = withContext(Dispatchers.IO) {
         try {
+            val targetAddress = InetSocketAddress(child.childHost, port)
+            // Diagnosing issue #30: the ConnectException below has shown "(port 0)" for the
+            // remote port even though `port` here logs correctly -- log the actual
+            // InetSocketAddress fields right before connect() to settle whether that 0 is real
+            // (e.g. an unresolved/zeroed address) or just a misleading exception message.
+            Log.d(
+                TAG,
+                "Dialing child ${child.childId}: targetAddress=$targetAddress " +
+                    "hostString=${targetAddress.hostString} port=${targetAddress.port} " +
+                    "isUnresolved=${targetAddress.isUnresolved} address=${targetAddress.address}"
+            )
             val newSocket = Socket().apply {
-                connect(InetSocketAddress(child.childHost, port), CONNECT_TIMEOUT_MS)
+                connect(targetAddress, CONNECT_TIMEOUT_MS)
                 soTimeout = 0 // blocking read loop once connected, no per-read timeout
             }
             val hello = SessionHelloPayload(child.childId, child.sharedSecret)
@@ -100,7 +124,7 @@ class ParentSessionServer(
         val activeSocket = socket
         if (activeSocket == null || !connected) return@withContext false
         try {
-            frame.writeTo(activeSocket.getOutputStream())
+            writeMutex.withLock { frame.writeTo(activeSocket.getOutputStream()) }
             true
         } catch (e: IOException) {
             connected = false
@@ -114,8 +138,10 @@ class ParentSessionServer(
         val activeSocket = socket
         if (activeSocket != null && connected) {
             runCatching {
-                MessageFrame.of(MessageType.SESSION_END, SessionEndPayload(reason).toJson())
-                    .writeTo(activeSocket.getOutputStream())
+                writeMutex.withLock {
+                    MessageFrame.of(MessageType.SESSION_END, SessionEndPayload(reason).toJson())
+                        .writeTo(activeSocket.getOutputStream())
+                }
             }
         }
         close()
