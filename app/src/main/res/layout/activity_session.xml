@@ -133,7 +133,9 @@
             android:textColor="@android:color/white"
             android:textSize="12sp" />
 
-        <!-- FLAG_SECURE help hint, per PLAN.md §9 / detailed-spec §5. -->
+        <!-- FLAG_SECURE help hint, per PLAN.md §9 / detailed-spec §5. Starts gone, shown only
+             while the video actually looks black (issue #39, driven by
+             VideoDecoderView.isContentBlank in SessionActivity). -->
         <ImageButton
             android:id="@+id/flagSecureHelpButton"
             android:layout_width="wrap_content"
@@ -144,9 +146,13 @@
             android:contentDescription="@string/session_help_hint_desc"
             android:padding="8dp"
             android:src="@android:drawable/ic_dialog_info"
+            android:visibility="gone"
             app:tint="@android:color/white" />
 
-        <!-- Text input bar, per PLAN.md §8 / detailed-spec §16. -->
+        <!-- Text input bar, per PLAN.md §8 / detailed-spec §16. Starts gone, shown only while
+             the parent actually has a focused editable field (issue #38, driven by
+             InputAvailabilityViewModel.hasFocusedInputField in SessionActivity), so it doesn't sit
+             over (and crowd out taps on) the real nav bar area below it the rest of the time. -->
         <LinearLayout
             android:id="@+id/textInputContainer"
             android:layout_width="match_parent"
@@ -154,7 +160,8 @@
             android:layout_gravity="bottom"
             android:background="#CC000000"
             android:orientation="horizontal"
-            android:padding="8dp">
+            android:padding="8dp"
+            android:visibility="gone">
 
             <EditText
                 android:id="@+id/textInputEditText"
@@ -222,6 +229,20 @@
             android:gravity="center"
             android:textColor="@android:color/white"
             android:textSize="18sp" />
+
+        <!-- issue #46: an actual navigable link to the sender's "Manage Viewers" screen isn't
+             possible here in general. That screen's data lives locally on whichever device is
+             acting as sender, a different physical device in the normal (not dual-role-testing)
+             case, so this device has no way to reach it over the network. Guidance text instead. -->
+        <TextView
+            android:id="@+id/rejectedHintText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:gravity="center"
+            android:text="@string/session_rejected_hint"
+            android:textColor="@android:color/darker_gray"
+            android:textSize="14sp" />
 
         <Button
             android:id="@+id/rejectedBackButton"
