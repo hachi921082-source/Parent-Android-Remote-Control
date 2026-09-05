@@ -60,6 +60,7 @@
     <string name="parent_pairing_success">Paired successfully!</string>
     <string name="parent_pairing_tailscale_missing">Tailscale isn\'t connected. Go back to Initial Setup to check it.</string>
     <string name="parent_pairing_tailscale_section_title">Tailscale Setup</string>
+    <string name="parent_pairing_tailscale_authkey_help">To get an auth key: open console.tailscale.com/admin/settings/keys in a browser, tap Generate auth key, fill in the details, then tap Generate key and copy the string shown.\nThen tap Open Tailscale below → gear icon → Accounts → ⋮ (top right) → Use an auth key, and paste it there to sign in.</string>
     <string name="parent_pairing_install_tailscale">Install Tailscale</string>
     <string name="parent_pairing_open_tailscale">Open Tailscale</string>
     <string name="parent_pairing_tailscale_status_connected">Status: connected to Tailscale</string>
