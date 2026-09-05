@@ -35,6 +35,21 @@ class ScreenCaptureEncoder(
     private var imageReaderThread: HandlerThread? = null
     private var imageReader: ImageReader? = null
 
+    /**
+     * Guards every access to [codec]/[imageReader] against [stop] (native SIGSEGV fix, found live
+     * via a "アプリが終了する" report on stop-sharing): the `runCatching` blocks below were only
+     * ever able to catch a JVM `IllegalStateException` from a codec already out of the Executing
+     * state -- they cannot catch a native crash, and `codec.release()`/`imageReader.close()`
+     * running concurrently with an in-flight callback still holding a `ByteBuffer`/`Image` view
+     * into that same native buffer is a genuine use-after-free, not merely a Java-level state
+     * error. [stop] now holds this lock for its whole teardown, and every callback checks the
+     * relevant field for `null` *after* acquiring it -- one already blocked on the lock when
+     * [stop] starts will see `null` and return harmlessly once it's this callback's turn, instead
+     * of touching now-freed native memory. Same lesson as issue #33: lock the shared resource
+     * itself, don't chase individual call sites.
+     */
+    private val codecLock = Any()
+
     private val latestFrame = AtomicReference<Yuv420Frame?>(null)
 
     lateinit var inputSurface: Surface
@@ -72,17 +87,19 @@ class ScreenCaptureEncoder(
                     index: Int,
                     info: MediaCodec.BufferInfo
                 ) {
-                    // Same stop()-vs-in-flight-callback race as feedInputBuffer above.
-                    runCatching {
-                        val outputBuffer = codec.getOutputBuffer(index)
-                        if (outputBuffer != null && info.size > 0) {
-                            val data = ByteArray(info.size)
-                            outputBuffer.position(info.offset)
-                            outputBuffer.limit(info.offset + info.size)
-                            outputBuffer.get(data)
-                            onNalUnit(data, info.presentationTimeUs)
+                    synchronized(codecLock) {
+                        if (this@ScreenCaptureEncoder.codec == null) return@synchronized
+                        runCatching {
+                            val outputBuffer = codec.getOutputBuffer(index)
+                            if (outputBuffer != null && info.size > 0) {
+                                val data = ByteArray(info.size)
+                                outputBuffer.position(info.offset)
+                                outputBuffer.limit(info.offset + info.size)
+                                outputBuffer.get(data)
+                                onNalUnit(data, info.presentationTimeUs)
+                            }
+                            codec.releaseOutputBuffer(index, false)
                         }
-                        codec.releaseOutputBuffer(index, false)
                     }
                 }
 
@@ -106,15 +123,15 @@ class ScreenCaptureEncoder(
     }
 
     private fun onImageAvailable(reader: ImageReader) {
-        // stop() can close() the ImageReader (and release its images) from a different thread
-        // while this callback is still mid-read -- same class of race as feedInputBuffer/
-        // onOutputBufferAvailable above, just on the reader side this time.
-        runCatching {
-            val image = reader.acquireLatestImage() ?: return
-            try {
-                latestFrame.set(convertRgbaToI420(image))
-            } finally {
-                image.close()
+        synchronized(codecLock) {
+            if (imageReader == null) return@synchronized
+            runCatching {
+                val image = reader.acquireLatestImage() ?: return@synchronized
+                try {
+                    latestFrame.set(convertRgbaToI420(image))
+                } finally {
+                    image.close()
+                }
             }
         }
     }
@@ -123,25 +140,27 @@ class ScreenCaptureEncoder(
      * display hasn't produced one yet -- every offered input index must be queued or the codec
      * eventually stalls with no free buffers left. */
     private fun feedInputBuffer(codec: MediaCodec, index: Int) {
-        // stop() runs on a different thread and can transition the codec out of the Executing
-        // state while a callback for an already-offered index is still in flight -- both calls
-        // below then throw IllegalStateException, which must not crash the app.
-        runCatching {
-            val image = codec.getInputImage(index) ?: return
-            val frame = latestFrame.get() ?: Yuv420Frame.black(image.width, image.height)
-            writeI420ToImage(frame, image)
-            codec.queueInputBuffer(index, 0, frame.y.size + frame.u.size + frame.v.size, System.nanoTime() / 1000, 0)
+        synchronized(codecLock) {
+            if (this.codec == null) return@synchronized
+            runCatching {
+                val image = codec.getInputImage(index) ?: return@synchronized
+                val frame = latestFrame.get() ?: Yuv420Frame.black(image.width, image.height)
+                writeI420ToImage(frame, image)
+                codec.queueInputBuffer(index, 0, frame.y.size + frame.u.size + frame.v.size, System.nanoTime() / 1000, 0)
+            }
         }
     }
 
     fun stop() {
-        runCatching { codec?.stop() }
-        runCatching { codec?.release() }
-        codec = null
+        synchronized(codecLock) {
+            runCatching { codec?.stop() }
+            runCatching { codec?.release() }
+            codec = null
+            imageReader?.close()
+            imageReader = null
+        }
         callbackThread?.quitSafely()
         callbackThread = null
-        imageReader?.close()
-        imageReader = null
         imageReaderThread?.quitSafely()
         imageReaderThread = null
         latestFrame.set(null)
