@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Pairing handshake and future live-session traffic (net package), all over the
          Tailscale-provided IP connectivity: see docs/plans/README.md Constants. -->
@@ -61,11 +62,24 @@
         <activity android:name=".pairing.AccessibilityOnboardingActivity" android:exported="false" />
         <activity android:name=".pairing.ParentPairingActivity" android:exported="false" />
         <activity android:name=".pairing.AuthorizedChildListActivity" android:exported="false" />
+        <activity android:name=".pairing.OpenSourceLicensesActivity" android:exported="false" />
 
         <!-- Child-side pairing flow. -->
         <activity android:name=".pairing.ChildPairingScanActivity" android:exported="false" />
+        <activity android:name=".pairing.ManualPairingActivity" android:exported="false" />
         <activity android:name=".pairing.PairingLabelPromptActivity" android:exported="false" />
         <activity android:name=".pairing.PairingListActivity" android:exported="false" />
+
+        <!-- Issue #50: zxing-android-embedded's own CaptureActivity declares
+             android:screenOrientation="sensorLandscape" in its library manifest; re-declaring the
+             same component here overrides that via the normal manifest-merge rule (an app's own
+             entry for a library component wins), locking the QR scanner to portrait: the natural
+             one-handed grip for this app's actual use (scanning the other device's screen while
+             holding this one upright). -->
+        <activity
+            android:name="com.journeyapps.barcodescanner.CaptureActivity"
+            android:screenOrientation="portrait"
+            tools:replace="android:screenOrientation" />
 
         <!-- Connection status & resilience (child side). See
              docs/plans/connection-status-and-resilience/PLAN.md §2/§3. configChanges: this
