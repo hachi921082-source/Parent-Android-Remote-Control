@@ -24,6 +24,13 @@ class InputAvailabilityViewModel {
     /** Starts `true` (§7); flips on `ACCESSIBILITY_STATUS` receipt. */
     val inputAvailable: StateFlow<Boolean> = _inputAvailable.asStateFlow()
 
+    private val _hasFocusedInputField = MutableStateFlow(false)
+    /** Issue #38: whether the parent currently has a focused editable field -- drives whether
+     * `SessionActivity` shows its message-input bar at all. Starts `false` (nothing focused yet is
+     * the safer default -- an unnecessarily-hidden bar is far less confusing than one shown with
+     * nowhere for its text to go). */
+    val hasFocusedInputField: StateFlow<Boolean> = _hasFocusedInputField.asStateFlow()
+
     private val _textInjectFailed = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     /** Emits once per `TEXT_INJECT_FAILED {reason: NO_FOCUSED_FIELD}` receipt -- a transient,
      * per-attempt notice (PLAN.md §8), not a standing state like [inputAvailable]. */
@@ -34,16 +41,20 @@ class InputAvailabilityViewModel {
      * the caller). */
     fun onFrame(frame: MessageFrame) {
         when (frame.type) {
-            MessageType.ACCESSIBILITY_STATUS ->
-                _inputAvailable.value = AccessibilityStatusPayload.parse(frame.payloadAsUtf8String()).granted
+            MessageType.ACCESSIBILITY_STATUS -> {
+                val payload = AccessibilityStatusPayload.parse(frame.payloadAsUtf8String())
+                _inputAvailable.value = payload.granted
+                _hasFocusedInputField.value = payload.hasFocusedInputField
+            }
             MessageType.TEXT_INJECT_FAILED -> _textInjectFailed.tryEmit(Unit)
             else -> Unit
         }
     }
 
-    /** Resets to the default assumption ("available") -- called at the start of a fresh `Live`
-     * session, since the previous value belonged to a now-superseded connection. */
+    /** Resets to the default assumption ("available", "nothing focused") -- called at the start of
+     * a fresh `Live` session, since the previous value belonged to a now-superseded connection. */
     fun reset() {
         _inputAvailable.value = true
+        _hasFocusedInputField.value = false
     }
 }
