@@ -49,6 +49,19 @@ public partial class VideoView : UserControl
     public event Action<RenderedContentRect>? ContentRectChanged;
 
     /// <summary>
+    /// issue #39（Android側）/#43（PC側）: 描画中の映像がほぼ黒一色に見えるかどうか -- 親側で
+    /// FLAG_SECURE保護されたアプリ（銀行アプリ等）が開かれていると純黒フレームになるという前提
+    /// （Android側VideoDecoderView.checkContentBlankと同じ判定根拠）。PC側は
+    /// <see cref="OnFrameDecoded"/>で既に生のRGB32ピクセルバッファへ直接アクセスできるため、
+    /// Android側のようなGPUテクスチャの読み出し（TextureView.getBitmap()）は不要 -- 独立した
+    /// ポーリングタイマーも設けず、デコード済みフレームが届くたびその場でサンプリングする。
+    /// </summary>
+    public bool IsContentBlank { get; private set; }
+
+    /// <summary><see cref="IsContentBlank"/>が変化するたびに発火する。常にUIスレッド上。</summary>
+    public event Action<bool>? IsContentBlankChanged;
+
+    /// <summary>
     /// 素のレターボックス矩形をズーム後の矩形へ差し替えるためのフック(zoom-magnifier tier用)。
     /// 非nullなら<see cref="Video.LetterboxLayoutCalculator.ComputeContentRect"/>の結果と現在の
     /// <see cref="FrameGeometry"/>を渡し、その戻り値を実際の描画/<see cref="CurrentContentRect"/>として
@@ -119,11 +132,48 @@ public partial class VideoView : UserControl
     /// <paramref name="pixels"/>はRGB32（詰め物なし、pixels.Length == width * height * 4）。</summary>
     private void OnFrameDecoded(byte[] pixels, int width, int height)
     {
+        bool isBlank = IsFrameBlank(pixels);
         Dispatcher.BeginInvoke(() =>
         {
             EnsureBitmap(width, height);
             _bitmap!.WritePixels(new Int32Rect(0, 0, width, height), pixels, width * 4, 0);
+
+            if (isBlank != IsContentBlank)
+            {
+                IsContentBlank = isBlank;
+                SecureHintButton.Visibility = isBlank ? Visibility.Visible : Visibility.Collapsed;
+                IsContentBlankChanged?.Invoke(isBlank);
+            }
         });
+    }
+
+    /// <summary>
+    /// 粗いサンプリングで十分（issue #43） -- 保護されたコンテンツは純黒(B=G=R=0)フレームになる
+    /// ことが前提なので、フレーム全体を走査せず均等間隔でサンプリングするだけで確実に判定できる。
+    /// デコードループのバックグラウンドスレッドから呼ぶ（UIスレッドへのホップ前、<see cref="OnFrameDecoded"/>
+    /// 参照）-- 単純な配列読み取りのみでUI要素に触れないため安全。
+    /// </summary>
+    private static bool IsFrameBlank(byte[] pixels)
+    {
+        if (pixels.Length == 0)
+        {
+            return false;
+        }
+
+        int pixelCount = pixels.Length / BytesPerPixel;
+        int sampleCount = Math.Min(BlankSampleCount, pixelCount);
+        int stride = Math.Max(1, pixelCount / sampleCount);
+        for (int i = 0; i < pixelCount; i += stride)
+        {
+            int offset = i * BytesPerPixel;
+            if (pixels[offset] > BlankChannelThreshold ||
+                pixels[offset + 1] > BlankChannelThreshold ||
+                pixels[offset + 2] > BlankChannelThreshold)
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     private void EnsureBitmap(int width, int height)
@@ -156,4 +206,8 @@ public partial class VideoView : UserControl
         CurrentContentRect = rect;
         ContentRectChanged?.Invoke(rect);
     }
+
+    private const int BytesPerPixel = 4;
+    private const int BlankSampleCount = 64;
+    private const int BlankChannelThreshold = 4;
 }
