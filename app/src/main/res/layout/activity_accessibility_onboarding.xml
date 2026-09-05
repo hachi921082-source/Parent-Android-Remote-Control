@@ -111,6 +111,17 @@
                 android:textSize="16sp"
                 android:textStyle="bold" />
 
+            <!-- BOOTH-style commercial distribution needs this bundled somewhere; this screen is
+                 already this app's one technical/settings-oriented destination (issue: no license
+                 notice existed at all). -->
+            <Button
+                android:id="@+id/openSourceLicensesButton"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:text="@string/accessibility_onboarding_licenses_link" />
+
         </LinearLayout>
     </ScrollView>
 
