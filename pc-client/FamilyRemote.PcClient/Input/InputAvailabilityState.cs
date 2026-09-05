@@ -25,6 +25,13 @@ public sealed class InputAvailabilityState
     /// <summary>常にUIスレッド上で発火する。</summary>
     public event Action<bool>? InputAvailableChanged;
 
+    /// <summary>既定false（issue #38/#42）。親側に現在フォーカス中の入力欄があるかどうか --
+    /// TextInputBarの表示/非表示はこれに連動させる（Android側hasFocusedInputFieldと同じ扱い）。</summary>
+    public bool HasFocusedInputField { get; private set; }
+
+    /// <summary>常にUIスレッド上で発火する。</summary>
+    public event Action<bool>? HasFocusedInputFieldChanged;
+
     /// <summary>TEXT_INJECT_FAILED受信ごとに1回発火する一過性の通知（PLAN.md §7 -- InputAvailableの
     /// ような定常状態ではない）。常にUIスレッド上で発火する。</summary>
     public event Action? TextInjectFailed;
@@ -37,11 +44,13 @@ public sealed class InputAvailabilityState
     /// <summary>SessionChannel.RegisterHandler(MessageType.AccessibilityStatus, ...)から呼ぶ想定。</summary>
     public void OnAccessibilityStatusFrame(MessageFrame frame)
     {
-        bool granted = AccessibilityStatusPayload.Parse(frame.PayloadAsUtf8String()).Granted;
+        var payload = AccessibilityStatusPayload.Parse(frame.PayloadAsUtf8String());
         RunOnUiThread(() =>
         {
-            InputAvailable = granted;
-            InputAvailableChanged?.Invoke(granted);
+            InputAvailable = payload.Granted;
+            InputAvailableChanged?.Invoke(payload.Granted);
+            HasFocusedInputField = payload.HasFocusedInputField;
+            HasFocusedInputFieldChanged?.Invoke(payload.HasFocusedInputField);
         });
     }
 
@@ -61,6 +70,8 @@ public sealed class InputAvailabilityState
     {
         InputAvailable = true;
         InputAvailableChanged?.Invoke(true);
+        HasFocusedInputField = false;
+        HasFocusedInputFieldChanged?.Invoke(false);
     }
 
     private void RunOnUiThread(Action action)
