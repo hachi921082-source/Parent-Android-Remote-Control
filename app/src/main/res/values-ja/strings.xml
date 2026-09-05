@@ -3,11 +3,11 @@
     <string name="app_name">ファミリーリモート</string>
 
     <!-- Main tabs -->
-    <string name="tab_parent">親</string>
-    <string name="tab_child">子</string>
+    <string name="tab_parent">送信側</string>
+    <string name="tab_child">受信側</string>
 
     <!-- Parent home -->
-    <string name="parent_home_title">親モード</string>
+    <string name="parent_home_title">送信側モード</string>
     <string name="parent_home_show_screen_button">画面を見せる</string>
     <string name="parent_home_stop_screen_button">共有を終了する</string>
     <string name="parent_home_pair_button">初期設定をする</string>
@@ -23,8 +23,9 @@
 
     <!-- Child home / pairing list -->
     <string name="pairing_list_title">ペアリング済みの親デバイス</string>
-    <string name="pairing_list_empty">まだペアリングされた親デバイスはありません。＋をタップして追加してください。</string>
-    <string name="pairing_list_add_fab_desc">親デバイスを追加</string>
+    <string name="pairing_list_empty">まだペアリングされた親デバイスはありません。下のボタンから追加してください。</string>
+    <string name="pairing_list_scan_qr_fab">QRコードを読み取る</string>
+    <string name="pairing_list_manual_code_fab">コードを直接入力する</string>
     <string name="pairing_entry_rename_desc">名前を変更</string>
     <string name="pairing_entry_delete_desc">削除</string>
     <string name="pairing_rename_dialog_title">デバイス名を変更</string>
@@ -61,11 +62,11 @@
     <string name="myos_checklist_step_autostart">設定 → アプリ管理 → 自動起動管理 で「ファミリーリモート」を有効にしてください。（この端末では直接開くリンクがありません。手動で移動してください。）</string>
 
     <!-- Parent pairing (QR display) -->
-    <string name="parent_pairing_title">新しい子デバイスとペアリングする</string>
-    <string name="parent_pairing_instructions">お子さんの端末でアプリを開き、「子」タブに切り替えて「親デバイスを追加」をタップし、この画面のコードを読み取ってもらってください。</string>
+    <string name="parent_pairing_title">新しい受信側デバイスとペアリングする</string>
+    <string name="parent_pairing_instructions">受信側の端末でアプリを開き、受信側タブに切り替えて+ボタンから下記のQRコードを読み取って下さい。</string>
     <string name="parent_pairing_host_address_label">ホストアドレス：%1$s</string>
     <string name="parent_pairing_manual_code_label">手動入力コード：%1$s</string>
-    <string name="parent_pairing_waiting">子デバイスがこのコードを読み取るのを待っています…</string>
+    <string name="parent_pairing_waiting">受信側デバイスがQRコードを読み取るのを待っています…</string>
     <string name="parent_pairing_success">ペアリングが完了しました！</string>
     <string name="parent_pairing_tailscale_missing">Tailscaleが接続されていません。「初期設定」に戻って確認してください。</string>
     <string name="parent_pairing_tailscale_section_title">Tailscaleの設定</string>
@@ -87,6 +88,12 @@
     <string name="child_pairing_error_generic">そのデバイスとペアリングできませんでした：%1$s</string>
     <string name="child_pairing_scan_again">もう一度スキャンする</string>
 
+    <!-- Manual pairing (issue #49) -->
+    <string name="manual_pairing_title">手動でペアリング</string>
+    <string name="manual_pairing_host_label">ホストアドレス</string>
+    <string name="manual_pairing_code_label">ペアリングコード</string>
+    <string name="manual_pairing_button">ペアリング</string>
+
     <!-- Label prompt -->
     <string name="pairing_label_prompt_title">このデバイスの名前を入力</string>
     <string name="pairing_label_prompt_hint">例：父、母</string>
@@ -100,6 +107,7 @@
     <string name="session_disconnected_title">%1$sとの接続が切れました。続くようであれば、もう一度操作してもらってください。</string>
     <string name="session_disconnected_back">デバイス一覧に戻る</string>
     <string name="session_rejected_title">%1$sには既に別の端末が接続されています。そのセッションが終了してから、もう一度お試しください。</string>
+    <string name="session_rejected_hint">改善しない場合は、送信側の端末の「視聴端末を管理」画面で、重複した古いペアリングが残っていないか確認してください。</string>
     <string name="session_status_placeholder">接続しました。状態情報を待っています…</string>
     <string name="session_status_wifi_connected">Wi-Fi：接続済み</string>
     <string name="session_status_wifi_disconnected">Wi-Fi：未接続</string>
@@ -118,4 +126,26 @@
     <string name="session_help_hint_desc">画面が真っ黒な理由について</string>
     <string name="session_help_hint_title">画面が真っ黒ですか？</string>
     <string name="session_help_hint_message">銀行アプリやパスワード管理アプリなど、保護されたアプリが相手の端末で開かれている場合、画面が真っ黒に表示されることがあります。必ずしも接続の問題とは限りません。</string>
+
+    <!-- Open source licenses (bundled distribution notice, no external link). -->
+    <string name="accessibility_onboarding_licenses_link">オープンソースライセンス</string>
+    <string name="open_source_licenses_title">オープンソースライセンス</string>
+    <string name="open_source_licenses_intro">本アプリは以下のオープンソースソフトウェアを使用しています。すべてに共通して適用されるライセンスの全文を以下に記載します。</string>
+    <string name="open_source_licenses_library_list">AndroidX Core KTX 1.13.1
+AndroidX AppCompat 1.7.0
+Material Components for Android 1.12.0
+AndroidX ConstraintLayout 2.2.0
+AndroidX Activity KTX 1.9.3
+AndroidX Fragment KTX 1.8.5
+AndroidX Security Crypto 1.1.0
+AndroidX RecyclerView 1.4.0
+AndroidX CoordinatorLayout 1.2.0
+AndroidX ViewPager2 1.1.0
+Kotlin Standard Library 2.3.10
+KotlinX Coroutines Android 1.11.0
+ZXing Core 3.5.4
+ZXing Android Embedded 4.3.0
+
+上記はすべて Apache License, Version 2.0 のもとで提供されています。</string>
+    <string name="open_source_licenses_full_text_title">Apache License, Version 2.0</string>
 </resources>
