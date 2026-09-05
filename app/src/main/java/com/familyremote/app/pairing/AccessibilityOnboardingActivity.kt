@@ -74,6 +74,9 @@ class AccessibilityOnboardingActivity : AppCompatActivity() {
 
         binding.installTailscaleButton.setOnClickListener { openTailscalePlayStoreListing() }
         binding.openTailscaleButton.setOnClickListener { openTailscaleApp() }
+        binding.openSourceLicensesButton.setOnClickListener {
+            startActivity(Intent(this, OpenSourceLicensesActivity::class.java))
+        }
 
         binding.continueButton.setOnClickListener {
             setResult(Activity.RESULT_OK)
