@@ -31,13 +31,31 @@
         android:clipToPadding="false"
         android:paddingBottom="88dp" />
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/addFab"
+    <!-- issue #49: two registration methods now exist (QR scan, manual code), so a single "+"
+         FAB would be ambiguous about which one it starts. Two labeled extended FABs make the
+         choice visible instead of hidden behind one icon. -->
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="24dp"
-        android:contentDescription="@string/pairing_list_add_fab_desc"
-        android:src="@android:drawable/ic_input_add" />
+        android:orientation="vertical">
+
+        <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+            android:id="@+id/manualCodeFab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:text="@string/pairing_list_manual_code_fab"
+            app:icon="@android:drawable/ic_menu_edit" />
+
+        <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+            android:id="@+id/scanQrFab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/pairing_list_scan_qr_fab"
+            app:icon="@android:drawable/ic_menu_camera" />
+
+    </LinearLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
