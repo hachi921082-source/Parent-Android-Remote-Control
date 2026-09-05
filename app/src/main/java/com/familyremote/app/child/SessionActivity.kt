@@ -6,6 +6,9 @@ import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
 import com.familyremote.app.R
 import com.familyremote.app.common.ConnectionState
@@ -56,6 +59,7 @@ class SessionActivity : AppCompatActivity() {
         binding.topOverlayBannerContainer.applyStatusBarTopInsetPadding()
         binding.liveStatusText.applyStatusBarTopInsetPadding()
         binding.flagSecureHelpButton.applyStatusBarTopInsetPadding()
+        hideSystemNavigationBar()
 
         val pairingId = intent.getStringExtra(EXTRA_PAIRING_ID)
             ?.let { runCatching { UUID.fromString(it) }.getOrNull() }
@@ -88,6 +92,19 @@ class SessionActivity : AppCompatActivity() {
         lifecycleScope.launch { viewModel.listenerError.collect { renderListenerError(it) } }
         lifecycleScope.launch { inputAvailabilityViewModel.inputAvailable.collect { renderInputAvailability(it) } }
         lifecycleScope.launch { inputAvailabilityViewModel.textInjectFailed.collect { showTextInjectFailedNotice() } }
+        // issue #38: the message-input bar only earns its screen space (and stops crowding the
+        // real nav bar area below it) while the parent actually has somewhere to put the text.
+        lifecycleScope.launch {
+            inputAvailabilityViewModel.hasFocusedInputField.collect { hasFocusedField ->
+                binding.textInputContainer.visibility = if (hasFocusedField) View.VISIBLE else View.GONE
+            }
+        }
+        // issue #39: the "why is the screen black?" hint is only relevant while it actually is.
+        lifecycleScope.launch {
+            binding.videoDecoderView.isContentBlank.collect { isBlank ->
+                binding.flagSecureHelpButton.visibility = if (isBlank) View.VISIBLE else View.GONE
+            }
+        }
 
         viewModel.startWaiting(pairing)
     }
@@ -116,6 +133,24 @@ class SessionActivity : AppCompatActivity() {
         )
 
         binding.flagSecureHelpButton.setOnClickListener { showFlagSecureHelpDialog() }
+    }
+
+    /**
+     * Hides the child device's own OS navigation bar for this Activity's whole lifetime (issue
+     * #34) -- it only ever operates the child's own OS, never the parent being viewed, so leaving
+     * it visible during a share session is actively misleading. A tap on the parent's own
+     * on-screen nav bar, visible within the shared video itself, already reaches the parent as an
+     * ordinary relayed `INPUT_TAP` -- no separate child-side Back/Home relay UI is needed on top
+     * of that. Uses transient-by-swipe behavior (not fully locked/kiosk), so the child can still
+     * swipe from the screen edge to reveal it temporarily and use the OS's own Home/Back if they
+     * genuinely need to leave the app -- matches the standard immersive-video UX pattern, not a
+     * lockout (touch arbitration itself remains an accepted limitation, issue #8).
+     */
+    private fun hideSystemNavigationBar() {
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        val controller = WindowInsetsControllerCompat(window, binding.root)
+        controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        controller.hide(WindowInsetsCompat.Type.navigationBars())
     }
 
     /** Dispatches frame types `ConnectionStateViewModel` doesn't itself parse -- `VIDEO_FRAME`
