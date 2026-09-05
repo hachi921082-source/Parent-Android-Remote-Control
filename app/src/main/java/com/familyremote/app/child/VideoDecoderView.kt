@@ -44,8 +44,38 @@ class VideoDecoderView @JvmOverloads constructor(
      * [LetterboxLayoutCalculator]. Recomputed on view resize and on frame-dimension change. */
     val contentRect: StateFlow<RectF> = _contentRect.asStateFlow()
 
+    private val _isContentBlank = MutableStateFlow(false)
+    /**
+     * True while the rendered video looks solid black (issue #39) -- a FLAG_SECURE-protected app
+     * open on the parent's side reliably produces a pure-black frame (not merely dark), so this
+     * only needs a coarse sample, not real content analysis. Polled independently of the video's
+     * own (possibly stalled) frame arrival via [blankCheckRunnable], since a genuinely frozen/black
+     * stream must still be detected even if no new `VIDEO_FRAME` is arriving to trigger a check.
+     */
+    val isContentBlank: StateFlow<Boolean> = _isContentBlank.asStateFlow()
+
+    private val blankCheckRunnable = object : Runnable {
+        override fun run() {
+            checkContentBlank()
+            postDelayed(this, BLANK_CHECK_INTERVAL_MS)
+        }
+    }
+
     init {
         surfaceTextureListener = this
+    }
+
+    private fun checkContentBlank() {
+        if (!isAvailable) return
+        val sample = runCatching { getBitmap(BLANK_SAMPLE_SIZE, BLANK_SAMPLE_SIZE) }.getOrNull() ?: return
+        val pixels = IntArray(BLANK_SAMPLE_SIZE * BLANK_SAMPLE_SIZE)
+        sample.getPixels(pixels, 0, BLANK_SAMPLE_SIZE, 0, 0, BLANK_SAMPLE_SIZE, BLANK_SAMPLE_SIZE)
+        sample.recycle()
+        _isContentBlank.value = pixels.all { pixel ->
+            (pixel and 0xFF) <= BLANK_CHANNEL_THRESHOLD &&
+                ((pixel shr 8) and 0xFF) <= BLANK_CHANNEL_THRESHOLD &&
+                ((pixel shr 16) and 0xFF) <= BLANK_CHANNEL_THRESHOLD
+        }
     }
 
     /** Feeds one decoded video frame; call from a background thread (see class doc). */
@@ -138,6 +168,7 @@ class VideoDecoderView @JvmOverloads constructor(
     override fun onSurfaceTextureAvailable(st: SurfaceTexture, width: Int, height: Int) {
         outputSurface = Surface(st)
         _frameGeometry.value?.let { reconfigureDecoder(it) }
+        post(blankCheckRunnable)
     }
 
     override fun onSurfaceTextureSizeChanged(st: SurfaceTexture, width: Int, height: Int) {
@@ -145,6 +176,8 @@ class VideoDecoderView @JvmOverloads constructor(
     }
 
     override fun onSurfaceTextureDestroyed(st: SurfaceTexture): Boolean {
+        removeCallbacks(blankCheckRunnable)
+        _isContentBlank.value = false
         releaseDecoder()
         outputSurface?.release()
         outputSurface = null
@@ -171,5 +204,8 @@ class VideoDecoderView @JvmOverloads constructor(
 
     companion object {
         private const val DEQUEUE_TIMEOUT_US = 10_000L
+        private const val BLANK_CHECK_INTERVAL_MS = 800L
+        private const val BLANK_SAMPLE_SIZE = 8
+        private const val BLANK_CHANNEL_THRESHOLD = 4
     }
 }
