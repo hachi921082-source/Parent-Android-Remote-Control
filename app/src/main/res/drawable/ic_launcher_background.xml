@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
-    <solid android:color="#FF3700B3" />
+    <!-- Matches colors.xml's pastel_blue: the "つながる画面" launcher icon concept's background layer. -->
+    <solid android:color="#FF90CAF9" />
 </shape>
