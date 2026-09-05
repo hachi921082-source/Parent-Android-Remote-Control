@@ -1,7 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- Wrapped in a ScrollView (was a bare LinearLayout) since the license link below added one more
+     item to an already content-heavy screen. This keeps doneButton/retryButton reachable on
+     shorter screens instead of risking an overflow. -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="match_parent">
+
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
     android:orientation="vertical"
     android:gravity="center_horizontal"
     android:padding="24dp">
@@ -70,4 +77,16 @@
         android:text="@string/action_done"
         android:visibility="gone" />
 
+    <!-- This screen (shown to anyone pairing a device, not just at first-run setup) is a more
+         reliably-revisited place for this than the one-time "Initial Setup" flow. Also linked
+         from there (AccessibilityOnboardingActivity). -->
+    <Button
+        android:id="@+id/openSourceLicensesButton"
+        style="@style/Widget.MaterialComponents.Button.TextButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="@string/accessibility_onboarding_licenses_link" />
+
 </LinearLayout>
+</ScrollView>
