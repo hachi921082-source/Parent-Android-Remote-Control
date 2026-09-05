@@ -125,6 +125,9 @@ class ScreenShareForegroundService : Service() {
      * runs, so that check's result is always sent even if it happens to read `false`. */
     private var lastKnownAccessibilityGranted: Boolean? = null
 
+    /** Same as [lastKnownAccessibilityGranted] but for `hasFocusedInputField` (issue #38). */
+    private var lastKnownHasFocusedInputField: Boolean? = null
+
     private val projectionCallback = object : MediaProjection.Callback() {
         override fun onStop() {
             // Fires identically whether the app or the OS status-bar control initiated the stop
@@ -189,7 +192,24 @@ class ScreenShareForegroundService : Service() {
         mediaProjection = projection
         projection.registerCallback(projectionCallback, Handler(Looper.getMainLooper()))
 
-        val metrics = resources.displayMetrics
+        // Issue #37 root cause: `resources.displayMetrics` here returned a height that excludes
+        // the system nav bar (confirmed live, sense4: 2064 vs. the real 2280) -- capture then
+        // silently cropped off the bottom of the screen, so a tap the child computed against that
+        // too-short declared frame height could never reach anywhere near the real bottom of the
+        // screen `dispatchGesture` addresses, landing ~200px too high (onto the app's own UI
+        // instead of the OS nav bar visible there). `onDefaultDisplayChanged()` below already used
+        // `Display.getRealMetrics()` (the full physical size, matching `dispatchGesture`'s
+        // coordinate space) for its own reconfigure-on-rotation path -- this now matches that, so
+        // capture and Accessibility gesture dispatch agree on one screen size from the start.
+        val display = displayManager.getDisplay(Display.DEFAULT_DISPLAY)
+        val metrics = if (display != null) {
+            DisplayMetrics().also {
+                @Suppress("DEPRECATION")
+                display.getRealMetrics(it)
+            }
+        } else {
+            resources.displayMetrics // DEFAULT_DISPLAY is always expected to exist; unreachable in practice.
+        }
         captureWidth = metrics.widthPixels
         captureHeight = metrics.heightPixels
         val dpi = metrics.densityDpi
@@ -315,18 +335,23 @@ class ScreenShareForegroundService : Service() {
     /**
      * Periodic check (docs/plans/remote-input-control/PLAN.md §7, detailed-spec §11): every
      * [Constants.ACCESSIBILITY_PERIODIC_CHECK_INTERVAL_MS] while a session is Live, broadcasts
-     * `ACCESSIBILITY_STATUS {granted}` to every connected child whenever the value *changes*
-     * (not every tick) -- the pre-flight check in `ParentAccessibilityService` already catches
-     * revocation on every actual input attempt; this only surfaces it during idle stretches.
+     * `ACCESSIBILITY_STATUS {granted, hasFocusedInputField}` to every connected child whenever
+     * *either* value changes (not every tick) -- the pre-flight check in
+     * `ParentAccessibilityService` already catches permission revocation on every actual input
+     * attempt; this only surfaces it during idle stretches. `hasFocusedInputField` (issue #38)
+     * drives the child's message-input bar visibility the same way.
      */
     private fun startAccessibilityStatusTicker() {
         lastKnownAccessibilityGranted = null
+        lastKnownHasFocusedInputField = null
         serviceScope.launch {
             while (currentCoroutineContext().isActive) {
                 val granted = AccessibilityPermissionMonitor.isGranted(this@ScreenShareForegroundService)
-                if (granted != lastKnownAccessibilityGranted) {
+                val hasFocusedInputField = connectedAccessibilityService?.hasFocusedInputField() ?: false
+                if (granted != lastKnownAccessibilityGranted || hasFocusedInputField != lastKnownHasFocusedInputField) {
                     lastKnownAccessibilityGranted = granted
-                    broadcastFrame(AccessibilityStatusPayload(granted).toFrame())
+                    lastKnownHasFocusedInputField = hasFocusedInputField
+                    broadcastFrame(AccessibilityStatusPayload(granted, hasFocusedInputField).toFrame())
                 }
                 delay(Constants.ACCESSIBILITY_PERIODIC_CHECK_INTERVAL_MS)
             }
