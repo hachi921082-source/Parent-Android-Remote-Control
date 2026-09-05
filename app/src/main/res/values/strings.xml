@@ -9,6 +9,7 @@
     <!-- Parent home -->
     <string name="parent_home_title">Parent mode</string>
     <string name="parent_home_show_screen_button">Show Screen</string>
+    <string name="parent_home_stop_screen_button">Stop Sharing</string>
     <string name="parent_home_pair_button">Initial Setup</string>
 
     <!-- Show Screen widget (placeholder icon/label; see ShowScreenWidgetProvider) -->
@@ -18,6 +19,7 @@
     <string name="screen_share_notification_channel_name">Screen sharing</string>
     <string name="screen_share_notification_title">Screen sharing is active</string>
     <string name="screen_share_notification_text">Your screen is being shared. Tap to open the app.</string>
+    <string name="screen_share_notification_stop_action">Stop Sharing</string>
 
     <!-- Child home / pairing list -->
     <string name="pairing_list_title">Paired parent devices</string>
@@ -28,6 +30,13 @@
     <string name="pairing_rename_dialog_title">Rename device</string>
     <string name="pairing_delete_dialog_title">Delete this pairing?</string>
     <string name="pairing_delete_dialog_message">This removes the pairing entry from this device only. The parent device is not notified.</string>
+
+    <!-- Authorized-viewer management (issue #31) -->
+    <string name="parent_home_manage_viewers_button">Manage Viewers</string>
+    <string name="authorized_child_list_title">Devices allowed to view this screen</string>
+    <string name="authorized_child_list_empty">No devices are currently authorized to view this screen.</string>
+    <string name="authorized_child_delete_dialog_title">Remove this device?</string>
+    <string name="authorized_child_delete_dialog_message">This device will no longer be able to view this screen. It can be re-paired later if needed.</string>
     <string name="action_ok">OK</string>
     <string name="action_cancel">Cancel</string>
     <string name="action_delete">Delete</string>
