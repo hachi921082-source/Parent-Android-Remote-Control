@@ -3,11 +3,11 @@
     <string name="app_name">家庭远程助手</string>
 
     <!-- Main tabs -->
-    <string name="tab_parent">家长</string>
-    <string name="tab_child">子女</string>
+    <string name="tab_parent">发送方</string>
+    <string name="tab_child">接收方</string>
 
     <!-- Parent home -->
-    <string name="parent_home_title">家长模式</string>
+    <string name="parent_home_title">发送方模式</string>
     <string name="parent_home_show_screen_button">显示屏幕</string>
     <string name="parent_home_stop_screen_button">停止共享</string>
     <string name="parent_home_pair_button">初始设置</string>
@@ -23,8 +23,9 @@
 
     <!-- Child home / pairing list -->
     <string name="pairing_list_title">已配对的家长设备</string>
-    <string name="pairing_list_empty">还没有配对任何家长设备。点击 + 添加一个。</string>
-    <string name="pairing_list_add_fab_desc">添加家长设备</string>
+    <string name="pairing_list_empty">还没有配对任何家长设备。请使用下方的按钮添加。</string>
+    <string name="pairing_list_scan_qr_fab">扫描二维码</string>
+    <string name="pairing_list_manual_code_fab">手动输入代码</string>
     <string name="pairing_entry_rename_desc">重命名</string>
     <string name="pairing_entry_delete_desc">删除</string>
     <string name="pairing_rename_dialog_title">重命名设备</string>
@@ -61,11 +62,11 @@
     <string name="myos_checklist_step_autostart">设置 → 应用管理 → 自启动管理 中启用“家庭远程助手”。（此设备暂无直接跳转链接，请手动前往设置。）</string>
 
     <!-- Parent pairing (QR display) -->
-    <string name="parent_pairing_title">配对新的子女设备</string>
-    <string name="parent_pairing_instructions">请在子女的设备上打开本应用，切换到“子女”标签页，点击“添加家长设备”，然后扫描此二维码。</string>
+    <string name="parent_pairing_title">配对新的接收方设备</string>
+    <string name="parent_pairing_instructions">请在接收方的设备上打开本应用，切换到接收方标签页，通过+按钮扫描下方的二维码。</string>
     <string name="parent_pairing_host_address_label">主机地址：%1$s</string>
     <string name="parent_pairing_manual_code_label">手动配对码：%1$s</string>
-    <string name="parent_pairing_waiting">正在等待子女设备扫描此二维码…</string>
+    <string name="parent_pairing_waiting">正在等待接收方设备扫描此二维码…</string>
     <string name="parent_pairing_success">配对成功！</string>
     <string name="parent_pairing_tailscale_missing">Tailscale 未连接。请返回"初始设置"进行检查。</string>
     <string name="parent_pairing_tailscale_section_title">Tailscale 设置</string>
@@ -87,6 +88,12 @@
     <string name="child_pairing_error_generic">无法与该设备配对：%1$s</string>
     <string name="child_pairing_scan_again">重新扫描</string>
 
+    <!-- Manual pairing (issue #49) -->
+    <string name="manual_pairing_title">手动配对</string>
+    <string name="manual_pairing_host_label">主机地址</string>
+    <string name="manual_pairing_code_label">配对代码</string>
+    <string name="manual_pairing_button">配对</string>
+
     <!-- Label prompt -->
     <string name="pairing_label_prompt_title">为此设备命名</string>
     <string name="pairing_label_prompt_hint">例如：爸爸、妈妈</string>
@@ -100,6 +107,7 @@
     <string name="session_disconnected_title">与%1$s的连接已断开。如果情况持续，请让对方重新操作一次。</string>
     <string name="session_disconnected_back">返回设备列表</string>
     <string name="session_rejected_title">已有其他设备连接到%1$s。请等该连接结束后再试一次。</string>
+    <string name="session_rejected_hint">如果问题持续出现，请在发送方设备的"管理可查看的设备"页面检查是否存在重复或过期的配对。</string>
     <string name="session_status_placeholder">已连接，正在等待状态信息…</string>
     <string name="session_status_wifi_connected">Wi-Fi：已连接</string>
     <string name="session_status_wifi_disconnected">Wi-Fi：未连接</string>
@@ -118,4 +126,26 @@
     <string name="session_help_hint_desc">屏幕为什么会变黑？</string>
     <string name="session_help_hint_title">屏幕是黑的吗？</string>
     <string name="session_help_hint_message">如果对方设备上打开了银行、密码管理器等受保护的应用，屏幕可能会显示为黑屏，这不一定代表连接出现了问题。</string>
+
+    <!-- Open source licenses (bundled distribution notice, no external link). -->
+    <string name="accessibility_onboarding_licenses_link">开源许可</string>
+    <string name="open_source_licenses_title">开源许可</string>
+    <string name="open_source_licenses_intro">本应用使用了以下开源软件。适用于全部这些软件的许可证全文列于下方。</string>
+    <string name="open_source_licenses_library_list">AndroidX Core KTX 1.13.1
+AndroidX AppCompat 1.7.0
+Material Components for Android 1.12.0
+AndroidX ConstraintLayout 2.2.0
+AndroidX Activity KTX 1.9.3
+AndroidX Fragment KTX 1.8.5
+AndroidX Security Crypto 1.1.0
+AndroidX RecyclerView 1.4.0
+AndroidX CoordinatorLayout 1.2.0
+AndroidX ViewPager2 1.1.0
+Kotlin Standard Library 2.3.10
+KotlinX Coroutines Android 1.11.0
+ZXing Core 3.5.4
+ZXing Android Embedded 4.3.0
+
+以上全部基于 Apache License, Version 2.0 提供。</string>
+    <string name="open_source_licenses_full_text_title">Apache License, Version 2.0</string>
 </resources>
