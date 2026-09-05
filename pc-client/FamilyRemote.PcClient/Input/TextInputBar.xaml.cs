@@ -45,6 +45,15 @@ public partial class TextInputBar : UserControl
         SendButton.IsEnabled = enabled;
     }
 
+    /// <summary>コントロール自体の表示/非表示（issue #38/#42） -- 親側に現在フォーカス中の入力欄が
+    /// ある時だけ表示する。Android側child/SessionActivity.ktの同名の扱いと揃えたもの。ホスト側の
+    /// LiveView.xamlでTextInputSlotの行がAutoサイズのため、非表示時はレイアウト上の高さも自動的に
+    /// 0になる。</summary>
+    public void SetVisible(bool visible)
+    {
+        Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+    }
+
     /// <summary>TEXT_INJECT_FAILED受信時の一過性トースト表示（PLAN.md §7） -- TextInputBar自体を
     /// 無効化はしない（送信の都度の失敗であり、InputAvailableのような定常状態ではない）。</summary>
     public void ShowTextInjectFailedNotice()
