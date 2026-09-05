@@ -3,11 +3,11 @@
     <string name="app_name">Family Remote</string>
 
     <!-- Main tabs -->
-    <string name="tab_parent">Parent</string>
-    <string name="tab_child">Child</string>
+    <string name="tab_parent">Sender</string>
+    <string name="tab_child">Receiver</string>
 
     <!-- Parent home -->
-    <string name="parent_home_title">Parent mode</string>
+    <string name="parent_home_title">Sender mode</string>
     <string name="parent_home_show_screen_button">Show Screen</string>
     <string name="parent_home_stop_screen_button">Stop Sharing</string>
     <string name="parent_home_pair_button">Initial Setup</string>
@@ -23,8 +23,9 @@
 
     <!-- Child home / pairing list -->
     <string name="pairing_list_title">Paired parent devices</string>
-    <string name="pairing_list_empty">No parent devices paired yet. Tap + to add one.</string>
-    <string name="pairing_list_add_fab_desc">Add a parent device</string>
+    <string name="pairing_list_empty">No parent devices paired yet. Use a button below to add one.</string>
+    <string name="pairing_list_scan_qr_fab">Scan QR code</string>
+    <string name="pairing_list_manual_code_fab">Enter code manually</string>
     <string name="pairing_entry_rename_desc">Rename</string>
     <string name="pairing_entry_delete_desc">Delete</string>
     <string name="pairing_rename_dialog_title">Rename device</string>
@@ -61,11 +62,11 @@
     <string name="myos_checklist_step_autostart">Settings → App Management → Auto Start Management → enable Family Remote. (No direct link available on this device — please navigate there manually.)</string>
 
     <!-- Parent pairing (QR display) -->
-    <string name="parent_pairing_title">Pair a new child device</string>
-    <string name="parent_pairing_instructions">On the child\'s device, open the app, switch to the Child tab, and tap "Add a parent device" to scan this code.</string>
+    <string name="parent_pairing_title">Pair a new receiver device</string>
+    <string name="parent_pairing_instructions">On the receiver\'s device, open the app, switch to the Receiver tab, and scan the QR code below using the + button.</string>
     <string name="parent_pairing_host_address_label">Host address: %1$s</string>
     <string name="parent_pairing_manual_code_label">Manual code: %1$s</string>
-    <string name="parent_pairing_waiting">Waiting for the child device to scan this code…</string>
+    <string name="parent_pairing_waiting">Waiting for the receiver device to scan this QR code…</string>
     <string name="parent_pairing_success">Paired successfully!</string>
     <string name="parent_pairing_tailscale_missing">Tailscale isn\'t connected. Go back to Initial Setup to check it.</string>
     <string name="parent_pairing_tailscale_section_title">Tailscale Setup</string>
@@ -87,6 +88,12 @@
     <string name="child_pairing_error_generic">Could not pair with that device: %1$s</string>
     <string name="child_pairing_scan_again">Scan again</string>
 
+    <!-- Manual pairing (issue #49) -->
+    <string name="manual_pairing_title">Manual Pairing</string>
+    <string name="manual_pairing_host_label">Host address</string>
+    <string name="manual_pairing_code_label">Pairing code</string>
+    <string name="manual_pairing_button">Pair</string>
+
     <!-- Label prompt -->
     <string name="pairing_label_prompt_title">Name this device</string>
     <string name="pairing_label_prompt_hint">e.g. Father, Mother</string>
@@ -100,6 +107,7 @@
     <string name="session_disconnected_title">Connection to %1$s was lost. Ask them to try again if this continues.</string>
     <string name="session_disconnected_back">Back to device list</string>
     <string name="session_rejected_title">Another device is already connected to %1$s. Try again once that session ends.</string>
+    <string name="session_rejected_hint">If this keeps happening, check the sender\'s "Manage Viewers" screen for a duplicate or stale pairing.</string>
     <string name="session_status_placeholder">Connected. Waiting for status…</string>
     <string name="session_status_wifi_connected">Wi-Fi: Connected</string>
     <string name="session_status_wifi_disconnected">Wi-Fi: Disconnected</string>
@@ -118,4 +126,26 @@
     <string name="session_help_hint_desc">Why might the screen be black?</string>
     <string name="session_help_hint_title">Black screen?</string>
     <string name="session_help_hint_message">A black screen may mean a protected app (like banking or a password manager) is open on their device — this isn\'t necessarily a connection problem.</string>
+
+    <!-- Open source licenses (bundled distribution notice, no external link). -->
+    <string name="accessibility_onboarding_licenses_link">Open Source Licenses</string>
+    <string name="open_source_licenses_title">Open Source Licenses</string>
+    <string name="open_source_licenses_intro">This app is built with the following open source software. The full text of the license that applies to all of them is included below.</string>
+    <string name="open_source_licenses_library_list">AndroidX Core KTX 1.13.1
+AndroidX AppCompat 1.7.0
+Material Components for Android 1.12.0
+AndroidX ConstraintLayout 2.2.0
+AndroidX Activity KTX 1.9.3
+AndroidX Fragment KTX 1.8.5
+AndroidX Security Crypto 1.1.0
+AndroidX RecyclerView 1.4.0
+AndroidX CoordinatorLayout 1.2.0
+AndroidX ViewPager2 1.1.0
+Kotlin Standard Library 2.3.10
+KotlinX Coroutines Android 1.11.0
+ZXing Core 3.5.4
+ZXing Android Embedded 4.3.0
+
+All of the above are licensed under the Apache License, Version 2.0.</string>
+    <string name="open_source_licenses_full_text_title">Apache License, Version 2.0</string>
 </resources>
