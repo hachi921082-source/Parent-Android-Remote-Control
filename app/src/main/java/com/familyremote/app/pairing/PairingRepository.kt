@@ -71,6 +71,18 @@ class PairingRepository(context: Context) {
     fun addAuthorizedChild(child: AuthorizedChild) {
         val children = getAuthorizedChildren().toMutableList()
         children.add(child)
+        saveAuthorizedChildren(children)
+    }
+
+    /** issue #31: previously nothing could remove a stale/duplicate `AuthorizedChild` entry
+     * (e.g. from re-pairing the same physical device) short of clearing all app data --
+     * `ScreenShareForegroundService.dialAuthorizedChildren()` dials every entry on every share
+     * start, so duplicates race each other for the single-session-enforcement slot. */
+    fun deleteAuthorizedChild(childId: UUID) {
+        saveAuthorizedChildren(getAuthorizedChildren().filterNot { it.childId == childId })
+    }
+
+    private fun saveAuthorizedChildren(children: List<AuthorizedChild>) {
         val array = JSONArray()
         children.forEach { array.put(it.toJson()) }
         prefs.edit().putString(KEY_AUTHORIZED_CHILDREN, array.toString()).apply()
