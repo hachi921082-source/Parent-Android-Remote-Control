@@ -48,8 +48,11 @@ class PairingListFragment : Fragment(R.layout.fragment_pairing_list) {
         binding.pairingRecyclerView.layoutManager = LinearLayoutManager(requireContext())
         binding.pairingRecyclerView.adapter = adapter
 
-        binding.addFab.setOnClickListener {
+        binding.scanQrFab.setOnClickListener {
             startActivity(Intent(requireContext(), ChildPairingScanActivity::class.java))
+        }
+        binding.manualCodeFab.setOnClickListener {
+            startActivity(Intent(requireContext(), ManualPairingActivity::class.java))
         }
 
         refreshList()
