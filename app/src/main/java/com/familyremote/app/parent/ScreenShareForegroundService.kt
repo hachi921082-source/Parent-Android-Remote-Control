@@ -33,6 +33,7 @@ import com.familyremote.app.pairing.AuthorizedChild
 import com.familyremote.app.pairing.PairingRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
@@ -64,6 +65,23 @@ class ScreenShareForegroundService : Service() {
     private var mediaProjection: MediaProjection? = null
     private var virtualDisplay: VirtualDisplay? = null
     private var encoder: ScreenCaptureEncoder? = null
+
+    /**
+     * `ScreenCaptureEncoder.onNalUnit` calls are already strictly sequential (MediaCodec delivers
+     * every `MediaCodec.Callback` method one at a time, in order, on that encoder's own callback
+     * thread) -- but the old code re-launched a fresh `serviceScope.launch(Dispatchers.IO) { ... }`
+     * per NAL unit, which hands each one to an unordered thread-pool coroutine. Two NAL units for
+     * the same frame (e.g. SPS/PPS then the IDR slice) could then reach [broadcastVideoFrame] --
+     * and therefore [ParentSessionServer.sendFrame]'s socket write -- out of order or, worse,
+     * genuinely concurrently and interleaved mid-write, corrupting the `MessageFrame` framing on
+     * the wire (observed as the child's `MessageFrame.readFrom` crashing with "Invalid frame
+     * length: 0" once real video frames were actually flowing for the first time -- this bug
+     * predates this session's encoder rewrite but was never previously exercised). A single
+     * long-lived consumer draining this channel restores strict ordering and non-overlapping
+     * writes without blocking the encoder's own callback thread.
+     */
+    private data class PendingVideoFrame(val data: ByteArray, val presentationTimeUs: Long)
+    private var videoFrameChannel: Channel<PendingVideoFrame>? = null
 
     private var captureWidth = 0
     private var captureHeight = 0
@@ -176,8 +194,9 @@ class ScreenShareForegroundService : Service() {
         captureHeight = metrics.heightPixels
         val dpi = metrics.densityDpi
 
+        val channel = startVideoFrameConsumer()
         val newEncoder = ScreenCaptureEncoder(onNalUnit = { data, presentationTimeUs ->
-            serviceScope.launch(Dispatchers.IO) { broadcastVideoFrame(data, presentationTimeUs) }
+            channel.trySend(PendingVideoFrame(data, presentationTimeUs))
         })
         newEncoder.start(captureWidth, captureHeight)
         encoder = newEncoder
@@ -257,8 +276,9 @@ class ScreenShareForegroundService : Service() {
     private fun reconfigureCaptureForDisplayChange(newWidth: Int, newHeight: Int, dpi: Int) {
         val projection = mediaProjection ?: return
         try {
+            val channel = videoFrameChannel ?: startVideoFrameConsumer()
             val newEncoder = ScreenCaptureEncoder(onNalUnit = { data, presentationTimeUs ->
-                serviceScope.launch(Dispatchers.IO) { broadcastVideoFrame(data, presentationTimeUs) }
+                channel.trySend(PendingVideoFrame(data, presentationTimeUs))
             })
             newEncoder.start(newWidth, newHeight)
 
@@ -429,6 +449,19 @@ class ScreenShareForegroundService : Service() {
         }
     }
 
+    /** Creates (once per capture session) the ordered queue [PendingVideoFrame]s are drained
+     * through -- see that class's doc for why a single long-lived consumer is required here. */
+    private fun startVideoFrameConsumer(): Channel<PendingVideoFrame> {
+        val channel = Channel<PendingVideoFrame>(Channel.UNLIMITED)
+        videoFrameChannel = channel
+        serviceScope.launch(Dispatchers.IO) {
+            for (frame in channel) {
+                broadcastVideoFrame(frame.data, frame.presentationTimeUs)
+            }
+        }
+        return channel
+    }
+
     private suspend fun broadcastVideoFrame(data: ByteArray, presentationTimeUs: Long) {
         val message = VideoFrameMessage(captureWidth, captureHeight, presentationTimeUs, data)
         sessionServersByChild.values.toList().forEach { server ->
@@ -506,6 +539,8 @@ class ScreenShareForegroundService : Service() {
         virtualDisplay = null
         encoder?.stop()
         encoder = null
+        videoFrameChannel?.close()
+        videoFrameChannel = null
         mediaProjection?.let {
             it.unregisterCallback(projectionCallback)
             it.stop()
@@ -518,13 +553,18 @@ class ScreenShareForegroundService : Service() {
      * `MediaProjection` grant (e.g. [SessionKeepAliveReceiver]'s Layer-2 restart after a full
      * process-kill, or a bare system restart in a fresh process). A killed process invalidates
      * the grant -- it cannot be silently resumed, so no capture/encode/network-dial work is
-     * attempted. The OS still requires `startForeground()` to be called promptly after
-     * `startForegroundService()`, so a notification is briefly posted and immediately torn down.
+     * attempted.
+     *
+     * This service is declared with `foregroundServiceType="mediaProjection"` in the manifest, so
+     * on API 34+ *any* call to `startForeground()` here -- regardless of the notification content
+     * -- is validated by the OS as an actual MediaProjection foreground service start, and throws
+     * `SecurityException` when (as here) there is no active grant. `startForeground()` must
+     * therefore not be called at all on this path; skipping it and calling `stopSelf()` directly
+     * is the standard resolution (confirmed via a real crash on real hardware, not just read from
+     * docs -- see GitHub issue for the crash this replaced).
      */
     private fun handleNoValidGrantAtStart() {
-        startForeground(NOTIFICATION_ID, buildIdleNotification())
         sessionStateStore.clear()
-        stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
     }
 
@@ -560,13 +600,21 @@ class ScreenShareForegroundService : Service() {
             .setSmallIcon(R.mipmap.ic_launcher)
             .setOngoing(true)
             .setContentIntent(openAppPendingIntent())
+            .addAction(0, getString(R.string.screen_share_notification_stop_action), stopPendingIntent())
             .build()
 
-    private fun buildIdleNotification(): Notification =
-        NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
-            .setContentTitle(getString(R.string.screen_share_notification_title))
-            .setSmallIcon(R.mipmap.ic_launcher)
-            .build()
+    /** issue #36: previously nothing in the UI ever sent [ACTION_STOP] -- the only way to end a
+     * session was the OS's own generic MediaProjection "stop casting" control, or leaving it
+     * running indefinitely (by design, task-removal alone must not stop sharing -- see
+     * [releaseCaptureResources]'s doc). This notification action, plus [ParentHomeFragment]'s
+     * button, are the two real stop entry points. */
+    private fun stopPendingIntent(): PendingIntent =
+        PendingIntent.getService(
+            this,
+            0,
+            createStopIntent(this),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
 
     private fun openAppPendingIntent(): PendingIntent {
         val intent = packageManager.getLaunchIntentForPackage(packageName)
