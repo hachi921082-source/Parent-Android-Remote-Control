@@ -27,6 +27,22 @@ sealed class PairingServerResult {
  */
 class PairingServer(private val repository: PairingRepository) {
 
+    @Volatile
+    private var activeServerSocket: ServerSocket? = null
+
+    /**
+     * Forcibly closes the in-progress listen socket, if any. `Job.cancel()` alone can't interrupt
+     * a thread blocked in [ServerSocket.accept] below -- that's a plain synchronous socket call,
+     * not a coroutine suspension point -- so without this, the port would stay bound until the
+     * next connection or the accept timeout elapses. Call this from the owning screen's
+     * `onDestroy()` alongside cancelling the coroutine job (mirrors [ChildSessionListener.stop]'s
+     * pattern). Found via real-device testing: leaving this screen and immediately retrying could
+     * hit "Address already in use" from the still-bound previous socket.
+     */
+    fun stop() {
+        runCatching { activeServerSocket?.close() }
+    }
+
     suspend fun listenForHandshake(
         bindAddress: String,
         port: Int,
@@ -43,6 +59,7 @@ class PairingServer(private val repository: PairingRepository) {
                 reuseAddress = true
                 bind(InetSocketAddress(InetAddress.getByName(bindAddress), port))
             }
+            activeServerSocket = serverSocket
             while (true) {
                 val remaining = deadline - System.currentTimeMillis()
                 if (remaining <= 0) return@withContext PairingServerResult.Timeout
@@ -101,6 +118,7 @@ class PairingServer(private val repository: PairingRepository) {
             PairingServerResult.Error(e.message ?: "Network error")
         } finally {
             runCatching { serverSocket?.close() }
+            activeServerSocket = null
         }
     }
 
