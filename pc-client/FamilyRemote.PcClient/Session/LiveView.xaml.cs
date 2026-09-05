@@ -53,6 +53,7 @@ public partial class LiveView : UserControl
         RegisterInputAvailabilityHandlers();
         _inputAvailability.InputAvailableChanged += _ => RenderInputAvailability();
         _inputAvailability.TextInjectFailed += () => TextBar.ShowTextInjectFailedNotice();
+        _inputAvailability.HasFocusedInputFieldChanged += TextBar.SetVisible;
 
         var pointerInput = new PointerInputController(
             Video,
