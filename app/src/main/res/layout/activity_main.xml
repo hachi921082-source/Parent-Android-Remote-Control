@@ -4,7 +4,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <FrameLayout
+    <!-- issue #47: ViewPager2 replaces the plain FrameLayout+FragmentTransaction.replace() host so
+         the two tabs can also be swiped between, not just tapped in the bottom nav (see
+         MainActivity.kt for the TabPagerAdapter + bidirectional bottomNavigation<->pager sync). -->
+    <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/tabFragmentContainer"
         android:layout_width="0dp"
         android:layout_height="0dp"
