@@ -68,7 +68,7 @@
     <string name="parent_pairing_manual_code_label">手动配对码：%1$s</string>
     <string name="parent_pairing_waiting">正在等待接收方设备扫描此二维码…</string>
     <string name="parent_pairing_success">配对成功！</string>
-    <string name="parent_pairing_tailscale_missing">Tailscale 未连接。请返回"初始设置"进行检查。</string>
+    <string name="parent_pairing_tailscale_missing">Tailscale 未连接。请点击下方按钮打开它，然后点击开关将其打开。</string>
     <string name="parent_pairing_tailscale_section_title">Tailscale 设置</string>
     <string name="parent_pairing_tailscale_authkey_help">获取认证密钥：在浏览器中打开 console.tailscale.com/admin/settings/keys，点击"Generate auth key"，填写信息后点击"Generate key"，复制显示的字符串。\n然后点击下方的"打开 Tailscale"→设置图标→Accounts→右上角的⋮→"Use an auth key"，粘贴该字符串并登录。</string>
     <string name="parent_pairing_install_tailscale">安装 Tailscale</string>
