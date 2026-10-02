@@ -12,6 +12,8 @@ import com.familyremote.app.R
 import com.familyremote.app.common.AccessibilityPermissionMonitor
 import com.familyremote.app.common.applyNavigationBarBottomInsetMargin
 import com.familyremote.app.common.applyStatusBarTopInsetPadding
+import com.familyremote.app.common.openTailscaleAppOrWebsite
+import com.familyremote.app.common.openTailscalePlayStoreListing
 import com.familyremote.app.databinding.ActivityAccessibilityOnboardingBinding
 
 /**
@@ -73,7 +75,7 @@ class AccessibilityOnboardingActivity : AppCompatActivity() {
         }
 
         binding.installTailscaleButton.setOnClickListener { openTailscalePlayStoreListing() }
-        binding.openTailscaleButton.setOnClickListener { openTailscaleApp() }
+        binding.openTailscaleButton.setOnClickListener { openTailscaleAppOrWebsite() }
         binding.openSourceLicensesButton.setOnClickListener {
             startActivity(Intent(this, OpenSourceLicensesActivity::class.java))
         }
@@ -125,25 +127,4 @@ class AccessibilityOnboardingActivity : AppCompatActivity() {
         )
     }
 
-    private fun openTailscalePlayStoreListing() {
-        startActivity(
-            Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$TAILSCALE_PACKAGE_NAME"))
-        )
-    }
-
-    private fun openTailscaleApp() {
-        val launchIntent = packageManager.getLaunchIntentForPackage(TAILSCALE_PACKAGE_NAME)
-        if (launchIntent != null) {
-            startActivity(launchIntent)
-        } else {
-            // Not installed yet -- send to Tailscale's own website rather than the Play Store
-            // listing (installTailscaleButton already covers that destination).
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(TAILSCALE_HOMEPAGE_URL)))
-        }
-    }
-
-    companion object {
-        private const val TAILSCALE_PACKAGE_NAME = "com.tailscale.ipn"
-        private const val TAILSCALE_HOMEPAGE_URL = "https://tailscale.com/"
-    }
 }
