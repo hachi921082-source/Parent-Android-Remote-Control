@@ -9,6 +9,7 @@ import androidx.lifecycle.lifecycleScope
 import com.familyremote.app.R
 import com.familyremote.app.common.Constants
 import com.familyremote.app.common.applyStatusBarTopInsetPadding
+import com.familyremote.app.common.openTailscaleAppOrWebsite
 import com.familyremote.app.databinding.ActivityParentPairingBinding
 import com.google.zxing.BarcodeFormat
 import com.journeyapps.barcodescanner.BarcodeEncoder
@@ -18,11 +19,13 @@ import kotlinx.coroutines.launch
  * Onboarding step 4 -- parent side (PLAN.md §4 step 1). Resolves this device's Tailscale
  * address, starts the temporary pairing listener, and displays the QR code the child scans.
  *
- * Tailscale install/connect is no longer handled here -- [OnboardingWizardActivity]'s preceding
- * setup step already gates on it being connected before this screen is ever reached (issue #28).
- * A null [TailscaleAddressResolver.resolve] result here is therefore an edge case (a disconnect in
- * the brief window since then), shown as a status message with no dedicated recovery action --
- * backing out to the setup screen re-checks and fixes it.
+ * Tailscale install/connect is no longer *explained* here -- [OnboardingWizardActivity]'s
+ * preceding setup step already gates on it being connected before this screen is first reached
+ * (issue #28). A null [TailscaleAddressResolver.resolve] result here means it was disconnected
+ * since then (e.g. the parent toggled it off by accident) -- issue #52 adds a one-tap "Open
+ * Tailscale" recovery button for that case (skips explaining the notification shade's Quick
+ * Settings tile; the parent just needs to open Tailscale and tap its connect switch), plus an
+ * [onResume] re-check so returning here from Tailscale resumes pairing automatically.
  */
 class ParentPairingActivity : AppCompatActivity() {
 
@@ -30,6 +33,12 @@ class ParentPairingActivity : AppCompatActivity() {
     private lateinit var repository: PairingRepository
     private var pairingJob: kotlinx.coroutines.Job? = null
     private var pairingServer: PairingServer? = null
+
+    /** Set while blocked on [TailscaleAddressResolver.resolve] returning null -- lets [onResume]
+     * know it's safe to retry automatically (an active QR/pairing attempt must not be restarted
+     * just because the Activity resumed for an unrelated reason). */
+    private var tailscaleMissing = false
+    private var isFirstResume = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,8 +55,22 @@ class ParentPairingActivity : AppCompatActivity() {
         binding.openSourceLicensesButton.setOnClickListener {
             startActivity(Intent(this, OpenSourceLicensesActivity::class.java))
         }
+        binding.openTailscaleButton.setOnClickListener { openTailscaleAppOrWebsite() }
 
         startPairingAttempt()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (isFirstResume) {
+            // onCreate already called startPairingAttempt() once -- skip the resume that
+            // immediately follows it so a fresh screen load doesn't regenerate the QR twice.
+            isFirstResume = false
+            return
+        }
+        if (tailscaleMissing) {
+            startPairingAttempt()
+        }
     }
 
     override fun onDestroy() {
@@ -67,12 +90,16 @@ class ParentPairingActivity : AppCompatActivity() {
         binding.qrImageView.visibility = View.GONE
         binding.hostAddressText.visibility = View.GONE
         binding.manualCodeText.visibility = View.GONE
+        binding.openTailscaleButton.visibility = View.GONE
 
         val parentHost = TailscaleAddressResolver.resolve()
         if (parentHost == null) {
+            tailscaleMissing = true
             binding.statusText.setText(R.string.parent_pairing_tailscale_missing)
+            binding.openTailscaleButton.visibility = View.VISIBLE
             return
         }
+        tailscaleMissing = false
 
         val tempToken = SecureTokenGenerator.generateTempPairingToken()
         val qrPayload = PairingQrPayload(

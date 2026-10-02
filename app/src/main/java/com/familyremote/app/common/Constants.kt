@@ -28,4 +28,7 @@ object Constants {
     const val TAILSCALE_CGNAT_FIRST_OCTET = 100
     const val TAILSCALE_CGNAT_SECOND_OCTET_MIN = 64
     const val TAILSCALE_CGNAT_SECOND_OCTET_MAX = 127
+
+    const val TAILSCALE_PACKAGE_NAME = "com.tailscale.ipn"
+    const val TAILSCALE_HOMEPAGE_URL = "https://tailscale.com/"
 }

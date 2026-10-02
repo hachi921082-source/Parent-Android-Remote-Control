@@ -69,24 +69,69 @@
         android:layout_height="match_parent"
         android:visibility="gone">
 
-        <!-- Video surface + tap/swipe input, per docs/plans/remote-input-control/PLAN.md §3/§5. -->
-        <FrameLayout
-            android:id="@+id/liveContentContainer"
+        <!-- Video surface (weighted) stacked above the text input bar (wrap_content), so showing
+             the input bar shrinks the video's own bounds instead of overlapping it — issue #51:
+             the sender's mirrored nav bar renders at the bottom of the video, and an overlaid
+             input bar made it untappable. Shrinking here re-triggers VideoDecoderView's
+             onSizeChanged/letterbox recompute, so tap-coordinate mapping (which reads its
+             contentRect) stays correct with no separate fix needed. -->
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:orientation="vertical">
 
-            <com.familyremote.app.child.VideoDecoderView
-                android:id="@+id/videoDecoderView"
+            <!-- Video surface + tap/swipe input, per docs/plans/remote-input-control/PLAN.md §3/§5. -->
+            <FrameLayout
+                android:id="@+id/liveContentContainer"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+                android:layout_height="0dp"
+                android:layout_weight="1">
 
-            <!-- Never intercepts touches: see TapMarkerOverlay's own doc comment. -->
-            <com.familyremote.app.child.TapMarkerOverlay
-                android:id="@+id/tapMarkerOverlay"
+                <com.familyremote.app.child.VideoDecoderView
+                    android:id="@+id/videoDecoderView"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+
+                <!-- Never intercepts touches: see TapMarkerOverlay's own doc comment. -->
+                <com.familyremote.app.child.TapMarkerOverlay
+                    android:id="@+id/tapMarkerOverlay"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+
+            </FrameLayout>
+
+            <!-- Text input bar, per PLAN.md §8 / detailed-spec §16. Starts gone, shown only while
+                 the parent actually has a focused editable field (issue #38, driven by
+                 InputAvailabilityViewModel.hasFocusedInputField in SessionActivity). Sized here
+                 (not overlaid, see issue #51 above) so it never covers the video/nav-bar area. -->
+            <LinearLayout
+                android:id="@+id/textInputContainer"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+                android:layout_height="wrap_content"
+                android:background="#CC000000"
+                android:orientation="horizontal"
+                android:padding="8dp"
+                android:visibility="gone">
 
-        </FrameLayout>
+                <EditText
+                    android:id="@+id/textInputEditText"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="@string/session_text_input_hint"
+                    android:inputType="text"
+                    android:textColor="@android:color/white"
+                    android:textColorHint="#AAFFFFFF" />
+
+                <Button
+                    android:id="@+id/textInputSendButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/session_text_input_send" />
+
+            </LinearLayout>
+
+        </LinearLayout>
 
         <!-- Status/connection-loss banners, stacked at the top (§6/§7). -->
         <LinearLayout
@@ -148,38 +193,6 @@
             android:src="@android:drawable/ic_dialog_info"
             android:visibility="gone"
             app:tint="@android:color/white" />
-
-        <!-- Text input bar, per PLAN.md §8 / detailed-spec §16. Starts gone, shown only while
-             the parent actually has a focused editable field (issue #38, driven by
-             InputAvailabilityViewModel.hasFocusedInputField in SessionActivity), so it doesn't sit
-             over (and crowd out taps on) the real nav bar area below it the rest of the time. -->
-        <LinearLayout
-            android:id="@+id/textInputContainer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:background="#CC000000"
-            android:orientation="horizontal"
-            android:padding="8dp"
-            android:visibility="gone">
-
-            <EditText
-                android:id="@+id/textInputEditText"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:hint="@string/session_text_input_hint"
-                android:inputType="text"
-                android:textColor="@android:color/white"
-                android:textColorHint="#AAFFFFFF" />
-
-            <Button
-                android:id="@+id/textInputSendButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/session_text_input_send" />
-
-        </LinearLayout>
 
     </FrameLayout>
 

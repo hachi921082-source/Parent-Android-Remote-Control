@@ -61,6 +61,18 @@
         android:gravity="center"
         android:textSize="16sp" />
 
+    <!-- issue #52: one-tap recovery if Tailscale was turned off after setup, opens
+         Tailscale directly so the parent only needs to tap its connect switch next, instead of
+         being told to go back to Initial Setup or find the notification shade's Quick Settings
+         tile. Shown only while TailscaleAddressResolver.resolve() is null. -->
+    <Button
+        android:id="@+id/openTailscaleButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="@string/parent_pairing_open_tailscale"
+        android:visibility="gone" />
+
     <Button
         android:id="@+id/retryButton"
         android:layout_width="match_parent"

@@ -2,6 +2,14 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Package-visibility declaration (API 30+): without this, getLaunchIntentForPackage() for
+         Tailscale returns null even when it's installed, since targetSdk 36 filters package
+         visibility by default, and openTailscaleAppOrWebsite() would then always fall through to
+         the website, even though it's exactly the installed-but-missing-this-declaration case. -->
+    <queries>
+        <package android:name="com.tailscale.ipn" />
+    </queries>
+
     <!-- Pairing handshake and future live-session traffic (net package), all over the
          Tailscale-provided IP connectivity: see docs/plans/README.md Constants. -->
     <uses-permission android:name="android.permission.INTERNET" />
